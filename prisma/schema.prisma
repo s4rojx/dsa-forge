@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String          @id @default(cuid())
+  email          String          @unique
+  name           String?
+  image          String?
+  password       String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  solvedProblems SolvedProblem[]
+  streakDays     StreakDay[]
+}
+
+model SolvedProblem {
+  id        String   @id @default(cuid())
+  userId    String
+  problemId String
+  solvedAt  DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, problemId])
+  @@index([userId, solvedAt])
+}
+
+model StreakDay {
+  id     String   @id @default(cuid())
+  userId String
+  date   DateTime
+  count  Int      @default(1)
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
