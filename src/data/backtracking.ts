@@ -28,6 +28,23 @@ void backtrack(int[] nums, int start, List<Integer> current, List<List<Integer>>
         current.remove(current.size() - 1); // Why: backtrack — undo the choice
     }
 }`,
+      cppTemplate: `// Subsets (no duplicates)
+void backtrack(vector<int>& nums, int start, vector<int>& curr, vector<vector<int>>& ans) {
+    ans.push_back(curr); // Why: Every partial subset is a valid subset
+    
+    for (int i = start; i < nums.size(); i++) {
+        curr.push_back(nums[i]); // Choose the element
+        backtrack(nums, i + 1, curr, ans); // Explore further
+        curr.pop_back(); // Backtrack: undo the choice
+    }
+}
+
+vector<vector<int>> subsets(vector<int>& nums) {
+    vector<vector<int>> ans;
+    vector<int> curr;
+    backtrack(nums, 0, curr, ans);
+    return ans;
+}`,
       timeComplexity: "O(n * 2^n)",
       spaceComplexity: "O(n) recursion depth",
       problems: [
@@ -69,6 +86,36 @@ void permuteHelper(int[] nums, boolean[] used, List<Integer> current, List<List<
         used[i] = false;
     }
 }`,
+      cppTemplate: `// Permutations
+void backtrack(vector<int>& nums, vector<bool>& used, vector<int>& curr, vector<vector<int>>& ans) {
+    // Found a complete permutation
+    if (curr.size() == nums.size()) {
+        ans.push_back(curr);
+        return;
+    }
+    
+    // Try placing every unused element
+    for (int i = 0; i < nums.size(); i++) {
+        if (used[i]) continue; // Skip if already used
+        
+        used[i] = true;
+        curr.push_back(nums[i]);
+        
+        backtrack(nums, used, curr, ans);
+        
+        // Backtrack: undo the current choice
+        curr.pop_back();
+        used[i] = false;
+    }
+}
+
+vector<vector<int>> permute(vector<int>& nums) {
+    vector<vector<int>> ans;
+    vector<int> curr;
+    vector<bool> used(nums.size(), false);
+    backtrack(nums, used, curr, ans);
+    return ans;
+}`,
       timeComplexity: "O(n * n!)",
       spaceComplexity: "O(n)",
       problems: [
@@ -106,6 +153,28 @@ void combineHelper(int n, int k, int start, List<Integer> current, List<List<Int
         combineHelper(n, k, i + 1, current, result);
         current.remove(current.size() - 1);
     }
+}`,
+      cppTemplate: `// Combinations — Choose k from [1, n]
+void backtrack(int n, int k, int start, vector<int>& curr, vector<vector<int>>& ans) {
+    // Found a valid combination of exactly k elements
+    if (curr.size() == k) {
+        ans.push_back(curr);
+        return;
+    }
+    
+    // Pruning: Stop if there are not enough elements left to fill the combination
+    for (int i = start; i <= n - (k - curr.size()) + 1; i++) {
+        curr.push_back(i); // Take the number
+        backtrack(n, k, i + 1, curr, ans); // Recurse for the next numbers
+        curr.pop_back(); // Backtrack
+    }
+}
+
+vector<vector<int>> combine(int n, int k) {
+    vector<vector<int>> ans;
+    vector<int> curr;
+    backtrack(n, k, 1, curr, ans);
+    return ans;
 }`,
       timeComplexity: "O(k * C(n,k))",
       spaceComplexity: "O(k)",
@@ -153,6 +222,39 @@ void placeQueen(int row, int n, char[][] board, Set<Integer> cols,
         board[row][col] = '.'; // Why: backtrack
         cols.remove(col); diags.remove(diag); antiDiags.remove(antiDiag);
     }
+}`,
+      cppTemplate: `// N-Queens
+void backtrack(int row, int n, vector<string>& board, unordered_set<int>& cols, 
+               unordered_set<int>& diags, unordered_set<int>& antiDiags, vector<vector<string>>& ans) {
+    if (row == n) {
+        ans.push_back(board);
+        return;
+    }
+    for (int col = 0; col < n; col++) {
+        int diag = row - col;
+        int antiDiag = row + col;
+        
+        // Skip if this spot is under attack
+        if (cols.count(col) || diags.count(diag) || antiDiags.count(antiDiag)) continue;
+        
+        // Place the queen
+        cols.insert(col); diags.insert(diag); antiDiags.insert(antiDiag);
+        board[row][col] = 'Q';
+        
+        backtrack(row + 1, n, board, cols, diags, antiDiags, ans);
+        
+        // Backtrack
+        board[row][col] = '.';
+        cols.erase(col); diags.erase(diag); antiDiags.erase(antiDiag);
+    }
+}
+
+vector<vector<string>> solveNQueens(int n) {
+    vector<vector<string>> ans;
+    vector<string> board(n, string(n, '.'));
+    unordered_set<int> cols, diags, antiDiags;
+    backtrack(0, n, board, cols, diags, antiDiags, ans);
+    return ans;
 }`,
       timeComplexity: "O(n!)",
       spaceComplexity: "O(n²)",
@@ -203,6 +305,38 @@ boolean isValid(char[][] board, int row, int col, char ch) {
     }
     return true;
 }`,
+      cppTemplate: `// Sudoku Solver
+bool isValid(vector<vector<char>>& board, int row, int col, char ch) {
+    int boxRow = 3 * (row / 3), boxCol = 3 * (col / 3);
+    for (int i = 0; i < 9; i++) {
+        if (board[row][i] == ch) return false; // check row
+        if (board[i][col] == ch) return false; // check column
+        if (board[boxRow + i / 3][boxCol + i % 3] == ch) return false; // check 3x3 box
+    }
+    return true;
+}
+
+bool solve(vector<vector<char>>& board) {
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            if (board[i][j] != '.') continue; // Skip filled cells
+            
+            for (char ch = '1'; ch <= '9'; ch++) {
+                if (isValid(board, i, j, ch)) {
+                    board[i][j] = ch;
+                    if (solve(board)) return true; // Found a valid placement
+                    board[i][j] = '.'; // Backtrack
+                }
+            }
+            return false; // No valid digits found
+        }
+    }
+    return true; // Completely filled
+}
+
+void solveSudoku(vector<vector<char>>& board) {
+    solve(board);
+}`,
       timeComplexity: "O(9^(empty cells))",
       spaceComplexity: "O(81) for the board",
       problems: [
@@ -240,6 +374,32 @@ boolean dfs(char[][] board, String word, int r, int c, int idx) {
                  || dfs(board, word, r, c+1, idx+1) || dfs(board, word, r, c-1, idx+1);
     board[r][c] = temp; // Why: backtrack — restore cell
     return found;
+}`,
+      cppTemplate: `// Word Search — Single Word
+bool dfs(vector<vector<char>>& board, string& word, int r, int c, int idx) {
+    if (idx == word.size()) return true; // Successfully matched all characters
+    if (r < 0 || r >= board.size() || c < 0 || c >= board[0].size()) return false;
+    if (board[r][c] != word[idx]) return false;
+    
+    char temp = board[r][c];
+    board[r][c] = '#'; // Mark as visited to avoid cycles
+    
+    bool found = dfs(board, word, r + 1, c, idx + 1) || 
+                 dfs(board, word, r - 1, c, idx + 1) || 
+                 dfs(board, word, r, c + 1, idx + 1) || 
+                 dfs(board, word, r, c - 1, idx + 1);
+                 
+    board[r][c] = temp; // Backtrack: restore the original character
+    return found;
+}
+
+bool exist(vector<vector<char>>& board, string word) {
+    for (int i = 0; i < board.size(); i++) {
+        for (int j = 0; j < board[0].size(); j++) {
+            if (dfs(board, word, i, j, 0)) return true;
+        }
+    }
+    return false;
 }`,
       timeComplexity: "O(M * N * 4^L)",
       spaceComplexity: "O(L) recursion depth",

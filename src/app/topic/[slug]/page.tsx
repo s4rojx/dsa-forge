@@ -39,6 +39,7 @@ export default function TopicPage() {
   const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
   const [showStandardOnly, setShowStandardOnly] = useState(false);
   const [expandedSidebar, setExpandedSidebar] = useState(true);
+  const [selectedLanguage, setSelectedLanguage] = useState<"java" | "cpp">("java");
 
   const activePattern = topic
     ? (activePatternId
@@ -92,7 +93,7 @@ export default function TopicPage() {
   const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
     { id: "overview", label: "Overview", icon: BookOpen },
     { id: "problems", label: "Problems", icon: Layers },
-    { id: "template", label: "Java Template", icon: Code2 },
+    { id: "template", label: "Code Template", icon: Code2 },
     { id: "companies", label: "Companies", icon: Building2 },
   ];
 
@@ -408,6 +409,30 @@ export default function TopicPage() {
 
           {activeTab === "template" && (
             <div className="space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="inline-flex rounded-lg border border-border bg-bg-card p-1">
+                  {[
+                    { id: "java", label: "Java" },
+                    { id: "cpp", label: "C++" },
+                  ].map((option) => {
+                    const isActive = selectedLanguage === option.id;
+
+                    return (
+                      <button
+                        key={option.id}
+                        onClick={() => setSelectedLanguage(option.id as "java" | "cpp")}
+                        className={`rounded-md px-4 py-2 text-sm font-jakarta transition-all ${
+                          isActive
+                            ? "bg-primary/10 text-primary"
+                            : "text-text-2 hover:bg-bg-elevated hover:text-text-1"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               <div className="flex items-center gap-4 text-xs font-mono text-text-3 mb-2">
                 <span className="flex items-center gap-1">
                   <Clock className="h-3 w-3 text-primary" /> Time: {activePattern.timeComplexity}
@@ -416,7 +441,14 @@ export default function TopicPage() {
                   <HardDrive className="h-3 w-3 text-primary" /> Space: {activePattern.spaceComplexity}
                 </span>
               </div>
-              <CodeBlock code={activePattern.templateCode} language="java" />
+              <CodeBlock
+                code={
+                  selectedLanguage === "java"
+                    ? activePattern.templateCode
+                    : activePattern.cppTemplate
+                }
+                language={selectedLanguage}
+              />
             </div>
           )}
 

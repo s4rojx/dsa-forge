@@ -56,6 +56,39 @@ public ListNode middleNode(ListNode head) {
     }
     return slow; // Why: slow is at middle when fast reaches end
 }`,
+      cppTemplate: `// Fast & Slow — Detect Cycle and Find Start
+ListNode* detectCycle(ListNode* head) {
+    ListNode* slow = head, fast = head;
+    
+    // Why: detect if a cycle exists
+    while (fast != nullptr && fast->next != nullptr) {
+        slow = slow->next;
+        fast = fast->next.next;
+        if (slow == fast) break;
+    }
+    
+    // Why: no cycle found
+    if (fast == nullptr || fast->next == nullptr) return nullptr;
+    
+    // Why: mathematical proof — distance from head to cycle start
+    // equals distance from meeting point to cycle start
+    slow = head;
+    while (slow != fast) {
+        slow = slow->next;
+        fast = fast->next;
+    }
+    return slow;
+}
+
+// Fast & Slow — Find Middle
+ListNode* middleNode(ListNode* head) {
+    ListNode* slow = head, fast = head;
+    while (fast != nullptr && fast->next != nullptr) {
+        slow = slow->next;
+        fast = fast->next.next;
+    }
+    return slow; // Why: slow is at middle when fast reaches end
+}`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(1)",
       problems: [
@@ -120,6 +153,41 @@ public ListNode reverseBetween(ListNode head, int left, int right) {
     }
     return dummy.next;
 }`,
+      cppTemplate: `// In-Place Reversal — Reverse Linked List
+ListNode* reverseList(ListNode* head) {
+    ListNode* prev = nullptr;
+    ListNode* current = head;
+    
+    while (current != nullptr) {
+        ListNode* nextTemp = current->next; // Why: save next before breaking link
+        current->next = prev;              // Why: reverse the pointer
+        prev = current;                   // Why: advance prev
+        current = nextTemp;               // Why: advance current
+    }
+    return prev; // Why: prev is the new head
+}
+
+// In-Place Reversal — Reverse Between Positions m and n
+ListNode* reverseBetween(ListNode* head, int left, int right) {
+    ListNode* dummy = new ListNode(0); // Why: dummy simplifies edge cases
+    dummy->next = head;
+    ListNode* prev = dummy;
+    
+    // Why: advance to the node just before the reversal start
+    for (int i = 0; i < left - 1; i++) {
+        prev = prev->next;
+    }
+    
+    ListNode* current = prev->next;
+    // Why: reverse (right - left) links
+    for (int i = 0; i < right - left; i++) {
+        ListNode* nextNode = current->next;
+        current->next = nextNode->next;
+        nextNode->next = prev->next;
+        prev->next = nextNode;
+    }
+    return dummy->next;
+}`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(1)",
       problems: [
@@ -164,7 +232,7 @@ public ListNode mergeTwoLists(ListNode l1, ListNode l2) {
         }
         tail = tail.next;
     }
-    tail.next = (l1 != null) ? l1 : l2; // Why: append remaining nodes
+    tail.next = (l1 != null) x l1 : l2; // Why: append remaining nodes
     return dummy.next;
 }
 
@@ -184,6 +252,43 @@ public ListNode sortList(ListNode head) {
     
     ListNode left = sortList(head);
     ListNode right = sortList(secondHalf);
+    return mergeTwoLists(left, right);
+}`,
+      cppTemplate: `// Merge Two Sorted Lists
+ListNode* mergeTwoLists(ListNode* l1, ListNode* l2) {
+    ListNode* dummy = new ListNode(0);
+    ListNode* tail = dummy;
+    
+    while (l1 != nullptr && l2 != nullptr) {
+        if (l1->val <= l2->val) {
+            tail->next = l1;
+            l1 = l1->next;
+        } else {
+            tail->next = l2;
+            l2 = l2->next;
+        }
+        tail = tail->next;
+    }
+    tail->next = (l1 != nullptr) x l1 : l2; // Why: append remaining nodes
+    return dummy->next;
+}
+
+// Sort List using Merge Sort
+ListNode* sortList(ListNode* head) {
+    if (head == nullptr || head->next == nullptr) return head;
+    
+    // Why: find middle using fast-slow pointers
+    ListNode* slow = head, fast = head->next;
+    while (fast != nullptr && fast->next != nullptr) {
+        slow = slow->next;
+        fast = fast->next.next;
+    }
+    
+    ListNode* secondHalf = slow->next;
+    slow->next = nullptr; // Why: split the list into two halves
+    
+    ListNode* left = sortList(head);
+    ListNode* right = sortList(secondHalf);
     return mergeTwoLists(left, right);
 }`,
       timeComplexity: "O(n log n) for sort, O(n) for merge",
@@ -259,6 +364,50 @@ public Node flatten(Node head) {
     }
     return head;
 }`,
+      cppTemplate: `// Skip/Jump — Remove Nth Node* From End
+ListNode* removeNthFromEnd(ListNode* head, int n) {
+    ListNode* dummy = new ListNode(0);
+    dummy->next = head;
+    ListNode* first = dummy, second = dummy;
+    
+    // Why: create a gap of n+1 between first and second
+    for (int i = 0; i <= n; i++) {
+        first = first->next;
+    }
+    
+    // Why: when first reaches nullptr, second is just before the target
+    while (first != nullptr) {
+        first = first->next;
+        second = second->next;
+    }
+    
+    second->next = second->next.next; // Why: skip the nth node
+    return dummy->next;
+}
+
+// Flatten a Multilevel Doubly Linked List
+Node* flatten(Node* head) {
+    if (head == nullptr) return nullptr;
+    Node* current = head;
+    
+    while (current != nullptr) {
+        if (current.child != nullptr) {
+            Node* child = current.child;
+            Node* childTail = child;
+            // Why: find the tail of child list to connect to current->next
+            while (childTail->next != nullptr) {
+                childTail = childTail->next;
+            }
+            childTail->next = current->next;
+            if (current->next != nullptr) current->next.prev = childTail;
+            current->next = child;
+            child.prev = current;
+            current.child = nullptr; // Why: clear the child pointer
+        }
+        current = current->next;
+    }
+    return head;
+}`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(1)",
       problems: [
@@ -318,8 +467,43 @@ public Node copyRandomList(Node head) {
     while (current != null) {
         Node clone = current.next;
         current.next = clone.next;
-        clone.next = (clone.next != null) ? clone.next.next : null;
+        clone.next = (clone.next != null) x clone.next.next : null;
         current = current.next;
+    }
+    return cloneHead;
+}`,
+      cppTemplate: `// Clone with Random Pointer — O(1) Space
+Node* copyRandomList(Node* head) {
+    if (head == nullptr) return nullptr;
+    
+    // Pass 1: interleave cloned nodes
+    // Why: A -> A' -> B -> B' allows O(1) random pointer mapping
+    Node* current = head;
+    while (current != nullptr) {
+        Node* clone = new Node(current->val);
+        clone->next = current->next;
+        current->next = clone;
+        current = clone->next;
+    }
+    
+    // Pass 2: set random pointers for cloned nodes
+    current = head;
+    while (current != nullptr) {
+        if (current->random != nullptr) {
+            // Why: current->next is the clone, current->random.next is the clone of random target
+            current->next.random = current->random.next;
+        }
+        current = current->next.next;
+    }
+    
+    // Pass 3: separate the two lists
+    Node* cloneHead = head->next;
+    current = head;
+    while (current != nullptr) {
+        Node* clone = current->next;
+        current->next = clone->next;
+        clone->next = (clone->next != nullptr) x clone->next.next : nullptr;
+        current = current->next;
     }
     return cloneHead;
 }`,

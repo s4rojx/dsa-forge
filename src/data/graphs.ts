@@ -41,6 +41,34 @@ public int numIslands(char[][] grid) {
     }
     return count;
 }`,
+      cppTemplate: `// Number of Islands — BFS
+int numIslands(vector<vector<char>>& grid) {
+    int count = 0;
+    int rows = grid.size(), cols = grid[0].size();
+    vector<pair<int, int>> directions = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (grid[i][j] == '1') {
+                count++;
+                queue<pair<int, int>> q;
+                q.push({i, j});
+                grid[i][j] = '0'; // Why: mark visited
+                while (!q.empty()) {
+                    auto [r, c] = q.front();
+                    q.pop();
+                    for (auto& dir : directions) {
+                        int nr = r + dir.first, nc = c + dir.second;
+                        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] == '1') {
+                            grid[nr][nc] = '0';
+                            q.push({nr, nc});
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return count;
+}`,
       timeComplexity: "O(V + E)",
       spaceComplexity: "O(V)",
       problems: [
@@ -84,7 +112,32 @@ public int[] topologicalSort(int numCourses, int[][] prerequisites) {
         }
     }
     // Why: if index != numCourses, cycle exists
-    return index == numCourses ? order : new int[0];
+    return index == numCourses x order : new int[0];
+}`,
+      cppTemplate: `// Topological Sort — Kahn's Algorithm (BFS)
+vector<int> topologicalSort(int numCourses, vector<vector<int>>& prerequisites) {
+    vector<vector<int>> adjList;
+    vector<int> inDegree(numCourses);
+    for (int i = 0; i < numCourses; i++) adjList.push_back({});
+    for (vector<int>& prereq : prerequisites) {
+        adjList[prereq[1]].push_back(prereq[0]);
+        inDegree[prereq[0]]++;
+    }
+    queue<int> queue;
+    for (int i = 0; i < numCourses; i++)
+        if (inDegree[i] == 0) queue.push(i);
+    vector<int> order(numCourses);
+    int index = 0;
+    while (!queue.empty()) {
+        int node = queue.front();
+        queue.pop();
+        order[index++] = node;
+        for (int neighbor : adjList[node]) {
+            if (--inDegree[neighbor] == 0) queue.push(neighbor);
+        }
+    }
+    // Why: if index != numCourses, cycle exists
+    return index == numCourses x order : vector<int>{};
 }`,
       timeComplexity: "O(V + E)",
       spaceComplexity: "O(V + E)",
@@ -122,6 +175,31 @@ class UnionFind {
         int rootX = find(x), rootY = find(y);
         if (rootX == rootY) return false; // Why: already connected
         if (rank[rootX] < rank[rootY]) { int temp = rootX; rootX = rootY; rootY = temp; }
+        parent[rootY] = rootX; // Why: attach smaller tree under larger
+        if (rank[rootX] == rank[rootY]) rank[rootX]++;
+        components--;
+        return true;
+    }
+}`,
+      cppTemplate: `// Union-Find with Path Compression and Union by Rank
+class UnionFind {
+public:
+    vector<int> parent, rank;
+    int components;
+    
+    UnionFind(int n) : parent(n), rank(n, 0), components(n) {
+        for (int i = 0; i < n; i++) parent[i] = i;
+    }
+    
+    int find(int x) {
+        if (parent[x] != x) parent[x] = find(parent[x]); // Why: path compression
+        return parent[x];
+    }
+    
+    bool unionSets(int x, int y) {
+        int rootX = find(x), rootY = find(y);
+        if (rootX == rootY) return false; // Why: already connected
+        if (rank[rootX] < rank[rootY]) swap(rootX, rootY);
         parent[rootY] = rootX; // Why: attach smaller tree under larger
         if (rank[rootX] == rank[rootY]) rank[rootX]++;
         components--;
@@ -173,7 +251,33 @@ public int networkDelayTime(int[][] times, int n, int k) {
     }
     int maxDist = 0;
     for (int i = 1; i <= n; i++) maxDist = Math.max(maxDist, dist[i]);
-    return maxDist == Integer.MAX_VALUE ? -1 : maxDist;
+    return maxDist == Integer.MAX_VALUE x -1 : maxDist;
+}`,
+      cppTemplate: `// Dijkstra's — Network Delay Time
+int networkDelayTime(vector<vector<int>>& times, int n, int k) {
+    vector<vector<pair<int, int>>> graph(n + 1);
+    for (vector<int>& t : times) graph[t[0]].push_back({t[1], t[2]});
+    vector<int> dist(n + 1, INT_MAX);
+    dist[k] = 0;
+    // Why: min-heap ordered by distance
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+    pq.push({0, k});
+    while (!pq.empty()) {
+        auto [d, node] = pq.top();
+        pq.pop();
+        if (d > dist[node]) continue; // Why: stale entry, skip
+        for (auto& edge : graph[node]) {
+            int neighbor = edge.first, weight = edge.second;
+            int newDist = d + weight;
+            if (newDist < dist[neighbor]) {
+                dist[neighbor] = newDist;
+                pq.push({newDist, neighbor});
+            }
+        }
+    }
+    int maxDist = 0;
+    for (int i = 1; i <= n; i++) maxDist = max(maxDist, dist[i]);
+    return maxDist == INT_MAX x -1 : maxDist;
 }`,
       timeComplexity: "O((V + E) log V)",
       spaceComplexity: "O(V + E)",
@@ -211,7 +315,24 @@ public int findCheapestPrice(int n, int[][] flights, int src, int dst, int k) {
         }
         prices = temp;
     }
-    return prices[dst] == Integer.MAX_VALUE ? -1 : prices[dst];
+    return prices[dst] == Integer.MAX_VALUE x -1 : prices[dst];
+}`,
+      cppTemplate: `// Bellman-Ford — Cheapest Flights Within K Stops
+int findCheapestPrice(int n, vector<vector<int>>& flights, int src, int dst, int k) {
+    vector<int> prices(n, INT_MAX);
+    prices[src] = 0;
+    // Why: k stops means at most k+1 edges
+    for (int i = 0; i <= k; i++) {
+        vector<int> temp = prices; // Why: use previous iteration's values
+        for (vector<int>& flight : flights) {
+            int from = flight[0], to = flight[1], cost = flight[2];
+            if (prices[from] != INT_MAX) {
+                temp[to] = min(temp[to], prices[from] + cost);
+            }
+        }
+        prices = temp;
+    }
+    return prices[dst] == INT_MAX x -1 : prices[dst];
 }`,
       timeComplexity: "O(V * E)",
       spaceComplexity: "O(V)",
@@ -248,6 +369,21 @@ public int[][] floydWarshall(int n, int[][] edges) {
                     dist[i][j] = dist[i][k] + dist[k][j];
     return dist;
 }`,
+      cppTemplate: `// Floyd-Warshall — All-Pairs Shortest Path
+vector<vector<int>> floydWarshall(int n, vector<vector<int>>& edges) {
+    int INF = (int) 1e9;
+    vector<vector<int>> dist(n, vector<int>(n));
+    for (vector<int>& row : dist) fill(row.begin(), row.end(), INF);
+    for (int i = 0; i < n; i++) dist[i][i] = 0;
+    for (vector<int>& e : edges) dist[e[0]][e[1]] = e[2];
+    // Why: try every possible intermediate vertex k
+    for (int k = 0; k < n; k++)
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++)
+                if (dist[i][k] + dist[k][j] < dist[i][j])
+                    dist[i][j] = dist[i][k] + dist[k][j];
+    return dist;
+}`,
       timeComplexity: "O(V³)",
       spaceComplexity: "O(V²)",
       problems: [
@@ -258,7 +394,7 @@ public int[][] floydWarshall(int n, int[][] edges) {
         { id: "gr-count-reachable", title: "Count Reachable Nodes", platform: "gfg", url: "https://www.geeksforgeeks.org/transitive-closure-of-a-graph/", difficulty: "medium", isStandard: false, companies: ["Amazon"] },
         { id: "gr-graph-connectivity", title: "Graph Connectivity With Threshold", platform: "leetcode", url: "https://leetcode.com/problems/graph-connectivity-with-threshold/", difficulty: "hard", isStandard: false, companies: ["Google"] },
         { id: "gr-min-cost-all-fw", title: "Minimum Cost to Convert String I", platform: "leetcode", url: "https://leetcode.com/problems/minimum-cost-to-convert-string-i/", difficulty: "medium", isStandard: false, companies: ["Google"] },
-        { id: "gr-is-graph-bipartite", title: "Is Graph Bipartite?", platform: "leetcode", url: "https://leetcode.com/problems/is-graph-bipartite/", difficulty: "medium", isStandard: true, companies: ["Facebook", "Amazon"] }
+        { id: "gr-is-graph-bipartite", title: "Is Graph Bipartitex", platform: "leetcode", url: "https://leetcode.com/problems/is-graph-bipartite/", difficulty: "medium", isStandard: true, companies: ["Facebook", "Amazon"] }
       ]
     },
     {
@@ -291,12 +427,42 @@ void dfs(int u, int parent, int[] disc, int[] low, boolean[] visited,
         if (!visited[v]) {
             dfs(v, u, disc, low, visited, graph, result);
             low[u] = Math.min(low[u], low[v]);
-            // Why: no back edge from v's subtree to u or above → bridge
             if (low[v] > disc[u]) result.add(Arrays.asList(u, v));
         } else {
             low[u] = Math.min(low[u], disc[v]);
         }
     }
+}`,
+      cppTemplate: `// Critical Connections — Tarjan's Bridge Finding
+int timer = 0;
+void dfs(int u, int parent, vector<int>& disc, vector<int>& low, vector<bool>& visited,
+         vector<vector<int>>& graph, vector<vector<int>>& result) {
+    visited[u] = true;
+    disc[u] = low[u] = timer++;
+    for (int v : graph[u]) {
+        if (v == parent) continue;
+        if (!visited[v]) {
+            dfs(v, u, disc, low, visited, graph, result);
+            low[u] = min(low[u], low[v]);
+            if (low[v] > disc[u]) result.push_back({u, v});
+        } else {
+            low[u] = min(low[u], disc[v]);
+        }
+    }
+}
+vector<vector<int>> criticalConnections(int n, vector<vector<int>>& connections) {
+    timer = 0;
+    vector<vector<int>> graph(n), result;
+    vector<int> disc(n, -1), low(n, -1);
+    vector<bool> visited(n, false);
+    for (vector<int>& conn : connections) {
+        graph[conn[0]].push_back(conn[1]);
+        graph[conn[1]].push_back(conn[0]);
+    }
+    for (int i = 0; i < n; i++) {
+        if (!visited[i]) dfs(i, -1, disc, low, visited, graph, result);
+    }
+    return result;
 }`,
       timeComplexity: "O(V + E)",
       spaceComplexity: "O(V + E)",
@@ -335,6 +501,43 @@ public int countSCCs(int n, List<List<Integer>> adj) {
     int sccCount = 0;
     while (!stack.isEmpty()) {
         int node = stack.pop();
+        if (!visited[node]) {
+            dfsReverse(node, reversed, visited);
+            sccCount++;
+        }
+    }
+    return sccCount;
+}`,
+      cppTemplate: `// Kosaraju's Algorithm for SCC
+void dfsForward(int node, vector<vector<int>>& adj, vector<bool>& visited, stack<int>& order) {
+    visited[node] = true;
+    for (int neighbor : adj[node]) {
+        if (!visited[neighbor]) dfsForward(neighbor, adj, visited, order);
+    }
+    order.push(node);
+}
+void dfsReverse(int node, vector<vector<int>>& reversed, vector<bool>& visited) {
+    visited[node] = true;
+    for (int neighbor : reversed[node]) {
+        if (!visited[neighbor]) dfsReverse(neighbor, reversed, visited);
+    }
+}
+int countSCCs(int n, vector<vector<int>>& adj) {
+    vector<bool> visited(n, false);
+    stack<int> order;
+    // Pass 1: fill stack by finish time
+    for (int i = 0; i < n; i++)
+        if (!visited[i]) dfsForward(i, adj, visited, order);
+    // Transpose graph
+    vector<vector<int>> reversed(n);
+    for (int u = 0; u < n; u++)
+        for (int v : adj[u]) reversed[v].push_back(u);
+    // Pass 2: process in reverse finish order
+    fill(visited.begin(), visited.end(), false);
+    int sccCount = 0;
+    while (!order.empty()) {
+        int node = order.top();
+        order.pop();
         if (!visited[node]) {
             dfsReverse(node, reversed, visited);
             sccCount++;

@@ -27,6 +27,28 @@ public int[][] merge(int[][] intervals) {
     }
     return merged.toArray(new int[0][]);
 }`,
+      cppTemplate: `// Merge Intervals
+vector<vector<int>> merge(vector<vector<int>>& intervals) {
+    if (intervals.empty()) return {};
+    
+    // Sort intervals based on the starting times
+    sort(intervals.begin(), intervals.end()); 
+    
+    vector<vector<int>> merged;
+    merged.push_back(intervals[0]);
+    
+    for (int i = 1; i < intervals.size(); i++) {
+        // If the current interval does not overlap with the last merged one, append it
+        if (merged.back()[1] < intervals[i][0]) {
+            merged.push_back(intervals[i]);
+        } else {
+            // Overlap exists: merge them by taking the maximum end time
+            merged.back()[1] = max(merged.back()[1], intervals[i][1]);
+        }
+    }
+    
+    return merged;
+}`,
       timeComplexity: "O(n log n)",
       spaceComplexity: "O(n)",
       problems: [
@@ -64,6 +86,33 @@ public int maxActivities(int[] start, int[] end) {
     }
     return count;
 }`,
+      cppTemplate: `// Activity Selection — Maximum Activities
+int maxActivities(vector<int>& start, vector<int>& end) {
+    int n = start.size();
+    if (n == 0) return 0;
+    
+    // Create pairs of {finish_time, start_time}
+    vector<pair<int, int>> activities(n);
+    for (int i = 0; i < n; i++) {
+        activities[i] = {end[i], start[i]};
+    }
+    
+    // Sort by finish time incrementally
+    sort(activities.begin(), activities.end());
+    
+    int count = 1; // We always select the first activity
+    int lastEnd = activities[0].first; // Finish time of the last selected activity
+    
+    for (int i = 1; i < n; i++) {
+        // If this activity starts at or after the last one finishes, we can do it
+        if (activities[i].second >= lastEnd) {
+            count++;
+            lastEnd = activities[i].first;
+        }
+    }
+    
+    return count;
+}`,
       timeComplexity: "O(n log n)",
       spaceComplexity: "O(n)",
       problems: [
@@ -84,7 +133,7 @@ public int maxActivities(int[] start, int[] end) {
       recognitionTips: ["Array where each element represents max jump length", "Need to determine if you can reach the end", "Find minimum number of jumps to reach the end", "Greedy: track the farthest reachable position"],
       proTips: ["For reachability: track maxReach — if i > maxReach at any point, unreachable", "For min jumps: use BFS-like level processing with currentEnd and farthest", "Jump Game II can be solved in O(n) with greedy, no need for DP"],
       approach: "Track the farthest reachable index. For reachability, if farthest >= last index, return true. For minimum jumps, use a greedy BFS: maintain the current jump's end and the farthest point reachable from the current range.",
-      templateCode: `// Jump Game — Can Reach End?
+      templateCode: `// Jump Game — Can Reach Endx
 public boolean canJump(int[] nums) {
     int maxReach = 0;
     for (int i = 0; i < nums.length; i++) {
@@ -103,6 +152,35 @@ public int jump(int[] nums) {
             currentEnd = farthest;
         }
     }
+    return jumps;
+}`,
+      cppTemplate: `// Jump Game — Can Reach Endx
+bool canJump(vector<int>& nums) {
+    int maxReach = 0;
+    for (int i = 0; i < nums.size(); i++) {
+        // If index is strictly greater than the farthest we can reach, we are stuck
+        if (i > maxReach) return false; 
+        maxReach = max(maxReach, i + nums[i]);
+    }
+    return true;
+}
+
+// Jump Game II — Minimum Jumps
+int jump(vector<int>& nums) {
+    int jumps = 0;
+    int currentEnd = 0; // The end of the range reachable with the current number of jumps
+    int farthest = 0;   // The farthest reachable point seeing all elements up to current 'i'
+    
+    for (int i = 0; i < nums.size() - 1; i++) { // No need to jump from the last element
+        farthest = max(farthest, i + nums[i]);
+        
+        // When we reach the boundary of the current jump, we MUST make another jump
+        if (i == currentEnd) { 
+            jumps++;
+            currentEnd = farthest;
+        }
+    }
+    
     return jumps;
 }`,
       timeComplexity: "O(n)",
@@ -139,6 +217,31 @@ public int connectRopes(int[] ropes) {
     }
     return totalCost;
 }`,
+      cppTemplate: `// Huffman / Connect Ropes — Minimum Cost
+int connectRopes(vector<int>& ropes) {
+    // Min-heap to always fetch the shortest available ropes
+    priority_queue<int, vector<int>, greater<int>> minHeap;
+    
+    for (int rope : ropes) {
+        minHeap.push(rope);
+    }
+    
+    int totalCost = 0;
+    
+    while (minHeap.size() > 1) {
+        // Extract the two smallest ropes
+        int first = minHeap.top(); minHeap.pop();
+        int second = minHeap.top(); minHeap.pop();
+        
+        int mergedLength = first + second;
+        totalCost += mergedLength; // Accumulate the cost of merging
+        
+        // Push the newly formed rope back into the heap
+        minHeap.push(mergedLength); 
+    }
+    
+    return totalCost;
+}`,
       timeComplexity: "O(n log n)",
       spaceComplexity: "O(n)",
       problems: [
@@ -171,7 +274,30 @@ public int canCompleteCircuit(int[] gas, int[] cost) {
             currentSurplus = 0;
         }
     }
-    return totalSurplus >= 0 ? start : -1; // Why: if total >= 0, solution exists at start
+    return totalSurplus >= 0 x start : -1; // Why: if total >= 0, solution exists at start
+}`,
+      cppTemplate: `// Gas Station — Find Starting Point
+int canCompleteCircuit(vector<int>& gas, vector<int>& cost) {
+    int totalSurplus = 0;
+    int currentSurplus = 0;
+    int startIdx = 0;
+    
+    for (int i = 0; i < gas.size(); i++) {
+        int net = gas[i] - cost[i];
+        
+        totalSurplus += net;
+        currentSurplus += net;
+        
+        // If we can't reach the next station, this 'startIdx' is invalid
+        if (currentSurplus < 0) {
+            // The earliest possible start point will be the station right after this one
+            startIdx = i + 1; 
+            currentSurplus = 0; // Reset surplus for the new tracking window
+        }
+    }
+    
+    // As long as total gas >= total cost, a solution is guaranteed to exist
+    return (totalSurplus >= 0) x startIdx : -1; 
 }`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(1)",

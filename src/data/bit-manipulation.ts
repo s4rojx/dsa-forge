@@ -32,6 +32,26 @@ public int[] singleNumberIII(int[] nums) {
     }
     return new int[]{a, b};
 }`,
+      cppTemplate: `// Single Number — Find the element appearing once
+    int singleNumber(vector<int>& nums) { 
+       int ans=0;
+	   for(auto x:nums)
+	   ans^=x;
+	   return ans;
+    }
+
+// Two unique numbers among pairs
+vector<int> singleNumberIII(vector<int>& nums) {
+    int xorAll = 0;
+    for (int num : nums) xorAll ^= num;
+    int diffBit = xorAll & (-xorAll); // Why: isolate rightmost set bit
+    int a = 0, b = 0;
+    for (int num : nums) {
+        if ((num & diffBit) != 0) a ^= num; // Why: group with bit set
+        else b ^= num; // Why: group without bit set
+    }
+    return vector<int>{a, b};
+}`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(1)",
       problems: [
@@ -75,6 +95,29 @@ public int minSessions(int[] tasks, int sessionTime) {
     }
     return dp[(1 << n) - 1];
 }`,
+      cppTemplate: `// Bitmask DP — Minimum Number of Work Sessions
+int solve(vector<int>& t, int k, vector<vector<int>>& dp, int mask, int time){
+        if(mask == (1 << t.size()) - 1)     //when completed all tasks
+            return 0;
+
+        if(dp[mask][time] != -1)    //if subproblem solved before
+            return dp[mask][time];
+        int pick1 = 1e9, pick2 = 1e9;       //large val to avoid selecting when choosing minimum
+        for(int i = 0; i < t.size(); i++){
+            if(mask & (1 << i))     //already completed this task
+                continue;
+            if(t[i] > time)     //dont have enough time in current session so need to start a new one hence the +1
+                pick1 = min(pick1, 1 + solve(t, k, dp, mask | (1 << i), k - t[i]));
+            else    //just complete this task in the curr remaining time
+                pick2 = min(pick2, solve(t, k, dp, mask | (1 << i), time - t[i]));
+        }
+        //since we want minimum time 
+        return dp[mask][time] = min(pick1, pick2);
+    }
+    int minSessions(vector<int>& tasks, int k) {
+        vector<vector<int>> dp(1 << 14, vector<int>(16, -1));
+        return solve(tasks, k, dp, 0, k) + 1;   //+1 because one session is active in the beginning of start of process
+    }`,
       timeComplexity: "O(3^n) for subset enumeration",
       spaceComplexity: "O(2^n)",
       problems: [
@@ -106,6 +149,24 @@ public boolean isPowerOfFour(int n) {
 }
 // Count Set Bits (Brian Kernighan's)
 public int hammingWeight(int n) {
+    int count = 0;
+    while (n != 0) {
+        n &= (n - 1); // Why: removes lowest set bit each iteration
+        count++;
+    }
+    return count;
+}`,
+      cppTemplate: `// Power of 2 Check
+bool isPowerOfTwo(int n) {
+    return n > 0 && (n & (n - 1)) == 0; // Why: power of 2 has exactly one bit set
+}
+// Power of 4 Check
+bool isPowerOfFour(int n) {
+    // Why: must be power of 2 AND bit at even position (0x55555555 = 0101...01)
+    return n > 0 && (n & (n - 1)) == 0 && (n & 0x55555555) != 0;
+}
+// Count Set Bits (Brian Kernighan's)
+int hammingWeight(int n) {
     int count = 0;
     while (n != 0) {
         n &= (n - 1); // Why: removes lowest set bit each iteration
@@ -150,6 +211,23 @@ public int countSetBitsRange(int n) {
     return count;
     // Why: For O(log n) formula-based approach, count contribution of each bit position
 }`,
+      cppTemplate: `// Counting Bits — 0 to n
+vector<int> countBits(int n) {
+    vector<int> dp(n + 1);
+    for (int i = 1; i <= n; i++) {
+        dp[i] = dp[i >> 1] + (i & 1); // Why: bits(i) = bits(i/2) + last bit
+    }
+    return dp;
+}
+// Count Total Set Bits from 1 to n
+int countSetBitsRange(int n) {
+    int count = 0;
+    for (int i = 1; i <= n; i++) {
+        count += Integer.bitCount(i);
+    }
+    return count;
+    // Why: For O(log n) formula-based approach, count contribution of each bit position
+}`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(n)",
       problems: [
@@ -182,6 +260,21 @@ public List<List<Integer>> subsets(int[] nums) {
             }
         }
         result.add(subset);
+    }
+    return result;
+}`,
+      cppTemplate: `// Subset Generation using Bitmask
+vector<vector<int>> subsets(vector<int>& nums) {
+    int n = nums.size();
+    vector<vector<int>> result;
+    for (int mask = 0; mask < (1 << n); mask++) {
+        vector<int> subset;
+        for (int i = 0; i < n; i++) {
+            if ((mask & (1 << i)) != 0) { // Why: bit i is set → include nums[i]
+                subset.push_back(nums[i]);
+            }
+        }
+        result.push_back(subset);
     }
     return result;
 }`,

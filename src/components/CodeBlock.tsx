@@ -3,9 +3,11 @@
 import { useMemo, useState } from "react";
 import hljs from "highlight.js/lib/core";
 import java from "highlight.js/lib/languages/java";
+import cpp from "highlight.js/lib/languages/cpp";
 import { Copy, Check, Terminal } from "lucide-react";
 
 hljs.registerLanguage("java", java);
+hljs.registerLanguage("cpp", cpp);
 
 interface CodeBlockProps {
   code: string;

@@ -22,6 +22,14 @@ public int gcd(int a, int b) {
 public int lcm(int a, int b) {
     return a / gcd(a, b) * b; // Why: divide first to prevent overflow
 }`,
+      cppTemplate: `// GCD and LCM
+int gcd(int a, int b) {
+    while (b != 0) { int temp = b; b = a % b; a = temp; }
+    return a;
+}
+int lcm(int a, int b) {
+    return a / gcd(a, b) * b; // Why: divide first to prevent overflow
+}`,
       timeComplexity: "O(log(min(a,b)))",
       spaceComplexity: "O(1)",
       problems: [
@@ -46,6 +54,21 @@ public int lcm(int a, int b) {
 public int countPrimes(int n) {
     if (n <= 2) return 0;
     boolean[] isComposite = new boolean[n];
+    int count = 0;
+    for (int i = 2; i < n; i++) {
+        if (!isComposite[i]) {
+            count++;
+            // Why: mark all multiples of i as composite, starting from i*i
+            for (long j = (long) i * i; j < n; j += i)
+                isComposite[(int) j] = true;
+        }
+    }
+    return count;
+}`,
+      cppTemplate: `// Sieve of Eratosthenes — Count Primes
+int countPrimes(int n) {
+    if (n <= 2) return 0;
+    vector<bool> isComposite(n, false);
     int count = 0;
     for (int i = 2; i < n; i++) {
         if (!isComposite[i]) {
@@ -93,6 +116,22 @@ public long power(long base, long exp, long mod) {
 public long modInverse(long a, long mod) {
     return power(a, mod - 2, mod); // Why: Fermat's little theorem
 }`,
+      cppTemplate: `// Binary Exponentiation — Fast Power
+long long power(long base, long exp, long mod) {
+    long result = 1;
+    base %= mod;
+    while (exp > 0) {
+        if ((exp & 1) == 1)
+            result = result * base % mod; // Why: odd exponent → multiply
+        exp >>= 1;
+        base = base * base % mod; // Why: square the base
+    }
+    return result;
+}
+// Modular Inverse (when mod is prime)
+long long modInverse(long a, long mod) {
+    return power(a, mod - 2, mod); // Why: Fermat's little theorem
+}`,
       timeComplexity: "O(log n)",
       spaceComplexity: "O(1)",
       problems: [
@@ -128,6 +167,21 @@ long nCr(int n, int r) {
     if (r < 0 || r > n) return 0;
     return fact[n] % MOD * invFact[r] % MOD * invFact[n-r] % MOD;
 }`,
+      cppTemplate: `// nCr with Modular Arithmetic
+const long long MOD = 1_000_000_007L;
+vector<long long> fact, invFact;
+void precompute(int n) {
+    fact = new long[n + 1];
+    invFact = new long[n + 1];
+    fact[0] = 1;
+    for (int i = 1; i <= n; i++) fact[i] = fact[i-1] * i % MOD;
+    invFact[n] = power(fact[n], MOD - 2, MOD);
+    for (int i = n - 1; i >= 0; i--) invFact[i] = invFact[i+1] * (i+1) % MOD;
+}
+long nCr(int n, int r) {
+    if (r < 0 || r > n) return 0;
+    return fact[n] % MOD * invFact[r] % MOD * invFact[n-r] % MOD;
+}`,
       timeComplexity: "O(n) precomputation, O(1) per query",
       spaceComplexity: "O(n)",
       problems: [
@@ -150,6 +204,24 @@ long nCr(int n, int r) {
       approach: "Identify the mathematical property or formula underlying the problem. Apply it directly or use simulation with cycle detection for convergence problems.",
       templateCode: `// Happy Number — Floyd's Cycle Detection
 public boolean isHappy(int n) {
+    int slow = n, fast = n;
+    do {
+        slow = digitSquareSum(slow);
+        fast = digitSquareSum(digitSquareSum(fast));
+    } while (slow != fast);
+    return slow == 1;
+}
+int digitSquareSum(int n) {
+    int sum = 0;
+    while (n > 0) {
+        int d = n % 10;
+        sum += d * d;
+        n /= 10;
+    }
+    return sum;
+}`,
+      cppTemplate: `// Happy Number — Floyd's Cycle Detection
+bool isHappy(int n) {
     int slow = n, fast = n;
     do {
         slow = digitSquareSum(slow);

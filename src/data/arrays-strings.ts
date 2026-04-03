@@ -47,6 +47,25 @@ public int subarraySum(int[] nums, int k) {
     }
     return result;
 }`,
+      cppTemplate: `// Prefix Sum — Subarray Sum Equals K
+#include <bits/stdc++.h>
+using namespace std;
+int subarraySum(vector<int>& nums, int k) {
+    unordered_map<int, int> freq; 
+    freq[0] = 1; // empty prefix sum
+    int sum = 0;
+    int count = 0;
+    for (int x : nums) {
+        sum += x;  
+        // if (sum - k) seen before → subarray exists
+        if (freq.count(sum - k)) {
+            count += freq[sum - k];
+        }
+        // store current prefix sum
+        freq[sum]++;
+    }
+    return count;
+}`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(n)",
       problems: [
@@ -110,7 +129,45 @@ public int maxSubarraySumCircular(int[] nums) {
         totalSum += num;
     }
     // Why: if all elements are negative, maxSum handles it; otherwise check circular case
-    return maxSum > 0 ? Math.max(maxSum, totalSum - minSum) : maxSum;
+    return maxSum > 0 x Math.max(maxSum, totalSum - minSum) : maxSum;
+}`,
+      cppTemplate: `// Kadane's Algorithm — Maximum Subarray Sum
+int maxSubArray(vector<int> &nums)
+{
+    int curr_sum = 0;
+    int ans = INT_MIN;
+    for (int i = 0; i < nums.size(); i++)
+    {
+        curr_sum += nums[i]; //Update currentSum by adding the current element to it.
+        ans = max(ans, curr_sum); //Update the maximum sum found so far.
+        if (curr_sum < 0)
+            curr_sum = 0; //Reset currentSum to 0 if it becomes negative.
+    }
+    return ans;
+}
+
+// Variant — Maximum Subarray Sum in Circular Array
+#include <bits/stdc++.h>
+using namespace std;
+
+int maxSubarraySumCircular(vector<int>& nums) {
+    int total = 0;
+    int curMax = 0, maxSum = INT_MIN;
+    int curMin = 0, minSum = INT_MAX;
+    for (int x : nums) {
+        // normal max subarray (Kadane)
+        curMax = max(x, curMax + x);
+        maxSum = max(maxSum, curMax);
+        // min subarray
+        curMin = min(x, curMin + x);
+        minSum = min(minSum, curMin);
+
+        total += x;
+    }
+    // if all numbers are negative
+    if (maxSum < 0) return maxSum;
+    // either normal or circular
+    return max(maxSum, total - minSum);
 }`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(1)",
@@ -139,7 +196,7 @@ public int maxSubarraySumCircular(int[] nums) {
         "Partitioning problems: rearrange array around a condition (move zeroes, sort by parity)"
       ],
       proTips: [
-        "Always clarify: do pointers start from same end or opposite ends of the array?",
+        "Always clarify: do pointers start from same end or opposite ends of the arrayx",
         "For 3Sum/4Sum, fix one element and reduce to 2Sum with two pointers on the remaining sorted subarray",
         "When removing duplicates, use a 'write pointer' that only advances on unique elements",
         "Container With Most Water: move the shorter side inward — moving the taller side can never improve area",
@@ -186,6 +243,62 @@ public List<List<Integer>> threeSum(int[] nums) {
         }
     }
     return result;
+}`,
+      cppTemplate: `// Two Pointers — Two Sum II (Sorted Array)
+vector<int> twoSum(vector<int> &nums, int target)
+{
+    unordered_map<int, int> mp;
+    for (int i = 0; i < nums.size(); i++)
+    {
+        int remain = target - nums[i];
+        if (mp.find(remain) != mp.end() && mp[remain] != i)
+            return {i, mp[remain]};
+        mp[nums[i]] = i;
+    }
+    return {-1, -1};
+    // If the question asks to just return whether pair exists or not, not the indexes in that case we can sort and easily find the pair sum without extra space
+}
+
+// Two Pointers — 3Sum
+vector<vector<int>> threeSum(vector<int> &nums)
+{
+    vector<vector<int>> ans;
+    sort(nums.begin(), nums.end());
+
+    for (int k = 0; k < nums.size(); k++)
+    {
+        int i = k + 1;
+        int j = nums.size() - 1;
+        int target = -nums[k];
+        while (i < j)
+        {
+            int sum = nums[i] + nums[j];
+            if (sum == target)
+            {
+                ans.push_back({nums[k], nums[i], nums[j]});
+                i++;
+                j--;
+                // Skip duplicate elements
+                while (i < j && nums[i] == nums[i - 1])
+                    i++;
+                while (i < j && nums[j] == nums[j + 1])
+                    j--;
+            }
+            else if (sum < target)
+            {
+                i++;
+            }
+            else
+            {
+                j--;
+            }
+        }
+        // Skip duplicate elements
+        while (k + 1 < nums.size() && nums[k + 1] == nums[k])
+            k++;
+    }
+
+    return ans;
 }`,
       timeComplexity: "O(n) for two sum, O(n²) for 3Sum",
       spaceComplexity: "O(1) excluding output",
@@ -245,6 +358,25 @@ private void swap(int[] nums, int i, int j) {
     nums[i] = nums[j];
     nums[j] = temp;
 }`,
+      cppTemplate: `// Dutch National Flag — Sort Colors (0, 1, 2)
+void sortColors(vector<int>& nums) {
+    int low = 0, mid = 0, high = nums.size() - 1;
+
+    while (mid <= high) {
+        if (nums[mid] == 0) {
+            swap(nums[low], nums[mid]);
+            low++;
+            mid++;
+        }
+        else if (nums[mid] == 1) {
+            mid++; // already in correct place
+        }
+        else { // nums[mid] == 2
+            swap(nums[mid], nums[high]);
+            high--; // don't move mid here
+        }
+    }
+}`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(1)",
       problems: [
@@ -296,6 +428,28 @@ public List<Integer> findDisappearedNumbers(int[] nums) {
         }
     }
     return missing;
+}`,
+      cppTemplate: `// Cyclic Sort — Find All Missing Numbers
+vector<int> findDisappearedNumbers(vector<int>& nums) {
+    int i = 0;
+    // place each number at its correct index
+    while (i < nums.size()) {
+        int correct = nums[i] - 1;
+        if (nums[i] != nums[correct]) {
+            swap(nums[i], nums[correct]);
+        } else {
+            i++;
+        }
+    }
+    // collect missing numbers
+    vector<int> ans;
+    for (int j = 0; j < nums.size(); j++) {
+        if (nums[j] != j + 1) {
+            ans.push_back(j + 1);
+        }
+    }
+
+    return ans;
 }`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(1)",
@@ -367,6 +521,34 @@ private void swap(int[] nums, int i, int j) {
     int temp = nums[i];
     nums[i] = nums[j];
     nums[j] = temp;
+}`,
+      cppTemplate: `// Next Permutation — In-Place
+void nextPermutation(vector<int> &nums)
+{
+    int bp = -1;
+    // finding the break point
+    for (int i = nums.size() - 2; i >= 0; i--)
+    {
+        if (nums[i] < nums[i + 1])
+        {
+            bp = i;
+            break;
+        }
+    }
+    // first greater element from back
+    if (bp != -1)
+    {
+        for (int i = nums.size() - 1; i >= 0; i--)
+        {
+            if (nums[i] > nums[bp])
+            {
+                swap(nums[i], nums[bp]);
+                break;
+            }
+        }
+    }
+    // reverse the array from bp+1 to end
+    reverse(nums.begin() + bp + 1, nums.end());
 }`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(1)",

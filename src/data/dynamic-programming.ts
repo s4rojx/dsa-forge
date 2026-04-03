@@ -41,6 +41,25 @@ public int rob(int[] nums) {
     }
     return prev1;
 }`,
+      cppTemplate: `// House Robber — 1D Linear DP
+int rob(vector<int>& nums) {
+    if (nums.empty()) return 0;
+    if (nums.size() == 1) return nums[0];
+    
+    int prev2 = 0;      // max money if we robbed 2 houses ago
+    int prev1 = nums[0]; // max money if we robbed the previous house
+    
+    for (int i = 1; i < nums.size(); i++) {
+        // We either rob the current house (nums[i] + prev2) or skip it (prev1)
+        int current = max(prev1, prev2 + nums[i]); 
+        
+        // Move sliding window of last two states forward
+        prev2 = prev1;
+        prev1 = current;
+    }
+    
+    return prev1;
+}`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(1) optimized",
       problems: [
@@ -83,6 +102,30 @@ public int maxProduct(int[] nums) {
         minProd = Math.min(nums[i], minProd * nums[i]);
         result = Math.max(result, maxProd);
     }
+    return result;
+}`,
+      cppTemplate: `// Maximum Product Subarray
+int maxProduct(vector<int>& nums) {
+    if (nums.empty()) return 0;
+    
+    int maxProd = nums[0];
+    int minProd = nums[0];
+    int result = nums[0];
+    
+    for (int i = 1; i < nums.size(); i++) {
+        // If current number is negative, it swaps the effect on max and min products
+        // (multiplying a large negative by a negative gives a large positive)
+        if (nums[i] < 0) { 
+            swap(maxProd, minProd); 
+        }
+        
+        // Choose either to start fresh from nums[i], or continue the existing product
+        maxProd = max(nums[i], maxProd * nums[i]);
+        minProd = min(nums[i], minProd * nums[i]);
+        
+        result = max(result, maxProd);
+    }
+    
     return result;
 }`,
       timeComplexity: "O(n)",
@@ -128,6 +171,22 @@ public int uniquePaths(int m, int n) {
             dp[j] += dp[j - 1]; // Why: paths from top + paths from left
     return dp[n - 1];
 }`,
+      cppTemplate: `// Unique Paths — Grid DP
+int uniquePaths(int m, int n) {
+    vector<int> dp(n, 1); // Start with the first row: 1 way to reach any cell
+    
+    // For every subsequent row
+    for (int i = 1; i < m; i++) {
+        // For every column (skipping the first column as it's always 1)
+        for (int j = 1; j < n; j++) {
+            // Paths to current cell = paths from the cell above (currently in dp[j]) 
+            //                         + paths from the cell to the left (dp[j-1])
+            dp[j] += dp[j - 1]; 
+        }
+    }
+    
+    return dp[n - 1]; // The last cell will have the total unique paths
+}`,
       timeComplexity: "O(m * n)",
       spaceComplexity: "O(n) optimized",
       problems: [
@@ -156,7 +215,7 @@ public int uniquePaths(int m, int n) {
       ],
       proTips: [
         "1D optimization: iterate capacity in REVERSE (right to left) to avoid reusing the same item",
-        "Subset Sum is a special case where value equals weight — dp[j] = can we reach sum j?",
+        "Subset Sum is a special case where value equals weight — dp[j] = can we reach sum jx",
         "'Target Sum' with +/- can be reduced to subset sum: find subset with sum = (total + target) / 2",
         "If total sum is odd, partition into equal halves is immediately impossible — early exit",
         "'Last Stone Weight II' is actually minimum subset difference — a knapsack reduction",
@@ -175,6 +234,28 @@ public boolean canPartition(int[] nums) {
             dp[j] = dp[j] || dp[j - num];
         }
     }
+    return dp[target];
+}`,
+      cppTemplate: `// 0/1 Knapsack — Partition Equal Subset Sum
+bool canPartition(vector<int>& nums) {
+    int total = 0;
+    for (int num : nums) total += num;
+    
+    // If total sum is odd, we cannot divide it into two equal integer halves
+    if (total % 2 != 0) return false;
+    
+    int target = total / 2;
+    vector<bool> dp(target + 1, false);
+    dp[0] = true; // Sub-sum of 0 is always achievable (taking no items)
+    
+    for (int num : nums) {
+        // Traverse backwards to ensure each number is used at most once (0/1 knapsack)
+        for (int j = target; j >= num; j--) {
+            // We can form sum 'j' if we could form 'j' before, or if we could form 'j - num'
+            dp[j] = dp[j] || dp[j - num];
+        }
+    }
+    
     return dp[target];
 }`,
       timeComplexity: "O(n * W)",
@@ -219,7 +300,24 @@ public int coinChange(int[] coins, int amount) {
     for (int coin : coins)
         for (int j = coin; j <= amount; j++) // Why: forward — reuse allowed
             dp[j] = Math.min(dp[j], dp[j - coin] + 1);
-    return dp[amount] > amount ? -1 : dp[amount];
+    return dp[amount] > amount x -1 : dp[amount];
+}`,
+      cppTemplate: `// Coin Change — Minimum Coins
+int coinChange(vector<int>& coins, int amount) {
+    // Fill array with amount + 1, which acts as infinity since max coins needed would be 'amount' (using 1-coins).
+    vector<int> dp(amount + 1, amount + 1);
+    
+    dp[0] = 0; // 0 coins needed to make amount 0
+    
+    for (int coin : coins) {
+        // Traverse forward because we have an unlimited supply of each coin type
+        for (int j = coin; j <= amount; j++) {
+            dp[j] = min(dp[j], dp[j - coin] + 1);
+        }
+    }
+    
+    // Check if the amount was reachable
+    return dp[amount] > amount x -1 : dp[amount];
 }`,
       timeComplexity: "O(n * W)",
       spaceComplexity: "O(W)",
@@ -256,6 +354,32 @@ public int longestCommonSubsequence(String text1, String text2) {
     }
     return dp[n];
 }`,
+      cppTemplate: `// Longest Common Subsequence
+int longestCommonSubsequence(string text1, string text2) {
+    int m = text1.size();
+    int n = text2.size();
+    
+    // dp[j] stores the LCS length of text1(0...i) and text2(0...j)
+    vector<int> dp(n + 1, 0);
+    
+    for (int i = 1; i <= m; i++) {
+        int prev = 0; // Temp variable to store dp[i-1][j-1]
+        
+        for (int j = 1; j <= n; j++) {
+            int current_dp_j = dp[j]; // Store before updating, will be 'prev' for the next inner loop iteration
+            
+            if (text1[i - 1] == text2[j - 1]) {
+                dp[j] = prev + 1; // Characters match, extend the LCS
+            } else {
+                dp[j] = max(dp[j], dp[j - 1]); // Take max by either excluding current char of text1 or text2
+            }
+            
+            prev = current_dp_j; // Move prev diagonally
+        }
+    }
+    
+    return dp[n];
+}`,
       timeComplexity: "O(m * n)",
       spaceComplexity: "O(n) optimized",
       problems: [
@@ -285,6 +409,25 @@ public int lengthOfLIS(int[] nums) {
         if (pos == tails.size()) tails.add(num);
         else tails.set(pos, num); // Why: replace to keep smallest possible tail
     }
+    return tails.size();
+}`,
+      cppTemplate: `// LIS — O(n log n) with Binary Search
+int lengthOfLIS(vector<int>& nums) {
+    vector<int> tails; // tails[i] holds the minimum tail element of an increasing subsequence of length (i + 1)
+    
+    for (int num : nums) {
+        // Find the first element in tails that is greater than or equal to num
+        auto it = lower_bound(tails.begin(), tails.end(), num);
+        
+        if (it == tails.end()) {
+            // Unprecedentedly large number extends the longest subsequence found so far
+            tails.push_back(num);
+        } else {
+            // Replace the current tail with 'num'. This keeps the potential end elements as small as possible
+            *it = num; 
+        }
+    }
+    
     return tails.size();
 }`,
       timeComplexity: "O(n log n)",
@@ -323,6 +466,32 @@ public int longestPalindromeSubseq(String s) {
     }
     return dp[n - 1];
 }`,
+      cppTemplate: `// Longest Palindromic Subsequence
+int longestPalindromeSubseq(string s) {
+    int n = s.size();
+    
+    // dp[j] represents LPS length for the substring from 'i' to 'j'
+    vector<int> dp(n, 1);
+    
+    // We fill the table backwards to know the answer for inner substrings first
+    for (int i = n - 2; i >= 0; i--) {
+        int prev = 0; // This essentially holds the value of dp[i+1][j-1]
+        
+        for (int j = i + 1; j < n; j++) {
+            int current_dp_j = dp[j];
+            
+            if (s[i] == s[j]) {
+                dp[j] = prev + 2; // Match found, add 2 (ends) to the inner palindrome limit
+            } else {
+                dp[j] = max(dp[j], dp[j - 1]); // Otherwise, ignore one of the ends
+            }
+            
+            prev = current_dp_j; // Shift variables 
+        }
+    }
+    
+    return dp[n - 1]; // Result for entire string (0 to n-1)
+}`,
       timeComplexity: "O(n²)",
       spaceComplexity: "O(n) optimized",
       problems: [
@@ -353,6 +522,32 @@ public int maxProfit(int[] prices) {
         rest = Math.max(rest, prevSold);     // Why: cooldown or stay resting
     }
     return Math.max(sold, rest);
+}`,
+      cppTemplate: `// Best Time Buy/Sell — With Cooldown (State Machine)
+int maxProfit(vector<int>& prices) {
+    // State definitions:
+    // held: max profit if we currently hold a stock
+    // sold: max profit if we just sold a stock today
+    // rest: max profit if we are resting (cooldown or haven't bought yet)
+    
+    int held = INT_MIN; 
+    int sold = 0;
+    int rest = 0;
+    
+    for (int price : prices) {
+        int prevSold = sold;
+        
+        // Transition to 'sold' state: we sell the stock we were holding
+        sold = held + price;      
+        
+        // Transition to 'held' state: either keep holding, or buy today from 'rest' state
+        held = max(held, rest - price);
+        
+        // Transition to 'rest' state: either keep resting, or move from 'sold' to cooldown
+        rest = max(rest, prevSold);     
+    }
+    
+    return max(sold, rest); // Max profit will be either passing the last day selling or resting
 }`,
       timeComplexity: "O(n) or O(n*k)",
       spaceComplexity: "O(1) or O(k)",
@@ -393,6 +588,33 @@ public int maxCoins(int[] nums) {
     }
     return dp[1][n];
 }`,
+      cppTemplate: `// Burst Balloons — Interval DP
+int maxCoins(vector<int>& nums) {
+    int n = nums.size();
+    
+    // Create padded array to handle bounds easily (balloons out of bounds yield 1 coin)
+    vector<int> arr(n + 2, 1);
+    for (int i = 0; i < n; i++) {
+        arr[i + 1] = nums[i];
+    }
+    
+    // dp[i][j] = max coins collected by bursting all balloons between indices i and j (excluding i and j)
+    vector<vector<int>> dp(n + 2, vector<int>(n + 2, 0));
+    
+    for (int len = 1; len <= n; len++) {
+        for (int left = 1; left + len - 1 <= n; left++) {
+            int right = left + len - 1;
+            
+            for (int k = left; k <= right; k++) {
+                // Assume 'k' is the LAST balloon burst in the range [left, right]
+                int coins = arr[left - 1] * arr[k] * arr[right + 1];
+                dp[left][right] = max(dp[left][right], dp[left][k - 1] + coins + dp[k + 1][right]);
+            }
+        }
+    }
+    
+    return dp[1][n]; // Max coins bursting everything from 1 to n
+}`,
       timeComplexity: "O(n³)",
       spaceComplexity: "O(n²)",
       problems: [
@@ -426,6 +648,27 @@ int[] robHelper(TreeNode node) {
     int robThis = node.val + left[1] + right[1];
     int skipThis = Math.max(left[0], left[1]) + Math.max(right[0], right[1]);
     return new int[]{robThis, skipThis};
+}`,
+      cppTemplate: `// House Robber III — DP on Trees
+pair<int, int> robHelper(TreeNode* node) {
+    if (node == nullptr) return {0, 0};
+    
+    // Recursively process left and right subtrees
+    auto left = robHelper(node->left);
+    auto right = robHelper(node->right);
+    
+    // Option 1: Rob this node. Cannot rob children, so we take the 'skip' values from children.
+    int robThis = node->val + left.second + right.second;
+    
+    // Option 2: Skip this node. We can afford the max of either robbing or skipping children.
+    int skipThis = max(left.first, left.second) + max(right.first, right.second);
+    
+    return {robThis, skipThis}; // {max if we rob this node, max if we skip this node}
+}
+
+int rob(TreeNode* root) {
+    auto result = robHelper(root);
+    return max(result.first, result.second);
 }`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(h)",
@@ -472,6 +715,42 @@ public int shortestPathLength(int[][] graph) {
     }
     return -1;
 }`,
+      cppTemplate: `// Shortest Path Visiting All Nodes (TSP variant)
+int shortestPathLength(vector<vector<int>>& graph) {
+    int n = graph.size();
+    int fullMask = (1 << n) - 1; // Mask representing all nodes visited
+    
+    // dist[mask][node] = shortest path visiting nodes in 'mask' ending at 'node'
+    vector<vector<int>> dist(1 << n, vector<int>(n, INT_MAX));
+    queue<pair<int, int>> q; // Pair of {mask, node}
+    
+    for (int i = 0; i < n; i++) {
+        dist[1 << i][i] = 0;
+        q.push({1 << i, i});
+    }
+    
+    while (!q.empty()) {
+        auto curr = q.front();
+        q.pop();
+        
+        int mask = curr.first;
+        int node = curr.second;
+        
+        // If all nodes are visited, we found our shortest path
+        if (mask == fullMask) return dist[mask][node];
+        
+        for (int next : graph[node]) {
+            int nextMask = mask | (1 << next);
+            // Relax the edge
+            if (dist[mask][node] + 1 < dist[nextMask][next]) {
+                dist[nextMask][next] = dist[mask][node] + 1;
+                q.push({nextMask, next});
+            }
+        }
+    }
+    
+    return -1; // Unreachable
+}`,
       timeComplexity: "O(2^n * n²)",
       spaceComplexity: "O(2^n * n)",
       problems: [
@@ -502,15 +781,42 @@ public int countEvenDigitSum(int num) {
     return (int) solve(digits, 0, true, 0);
 }
 long solve(String digits, int pos, boolean tight, int sum) {
-    if (pos == digits.length()) return sum % 2 == 0 ? 1 : 0;
-    int t = tight ? 1 : 0;
+    if (pos == digits.length()) return sum % 2 == 0 x 1 : 0;
+    int t = tight x 1 : 0;
     if (memo[pos][t][sum] != -1) return memo[pos][t][sum];
-    int limit = tight ? digits.charAt(pos) - '0' : 9;
+    int limit = tight x digits.charAt(pos) - '0' : 9;
     long count = 0;
     for (int d = 0; d <= limit; d++) {
         count += solve(digits, pos + 1, tight && d == limit, sum + d);
     }
     return memo[pos][t][sum] = count;
+}`,
+      cppTemplate: `// Digit DP — Count Numbers with Even Digit Sum (conceptual template)
+// This is a generic framework — adapt the 'state' for specific problems.
+// Structure: memo[index][tight][state]
+long long memo[20][2][200];
+
+long long solve(string& digits, int pos, bool tight, int sum) {
+    if (pos == digits.size()) return (sum % 2 == 0) x 1 : 0;
+    
+    int t = tight x 1 : 0;
+    if (memo[pos][t][sum] != -1) return memo[pos][t][sum];
+    
+    // Determine the upper bound for the current digit based on 'tight' logic
+    int limit = tight x (digits[pos] - '0') : 9;
+    long long count = 0;
+    
+    for (int d = 0; d <= limit; d++) {
+        count += solve(digits, pos + 1, tight && (d == limit), sum + d);
+    }
+    
+    return memo[pos][t][sum] = count;
+}
+
+int countEvenDigitSum(int num) {
+    string digits = to_string(num);
+    memset(memo, -1, sizeof(memo)); // Reset DP table
+    return solve(digits, 0, true, 0);
 }`,
       timeComplexity: "O(digits * states * 10)",
       spaceComplexity: "O(digits * states)",
@@ -548,6 +854,37 @@ public int maxResult(int[] nums, int k) {
         deque.offerLast(i);
     }
     return dp[n - 1];
+}`,
+      cppTemplate: `// Jump Game VI — Deque Optimization
+int maxResult(vector<int>& nums, int k) {
+    int n = nums.size();
+    vector<int> dp(n);
+    dp[0] = nums[0];
+    
+    // A monotonically decreasing deque storing indices.
+    // Represents indices window candidates to jump from.
+    deque<int> dq; 
+    dq.push_back(0);
+    
+    for (int i = 1; i < n; i++) {
+        // Remove indices from the front that fell out of our jump range [i - k]
+        while (!dq.empty() && dq.front() < i - k) {
+            dq.pop_front();
+        }
+        
+        // DP transition: best previous spot + current step value
+        dp[i] = dp[dq.front()] + nums[i];
+        
+        // Remove indices from the back whose dp values are worse than our current dp[i]
+        // This ensures the front of the deque always holds the max dp value
+        while (!dq.empty() && dp[dq.back()] <= dp[i]) {
+            dq.pop_back();
+        }
+        
+        dq.push_back(i);
+    }
+    
+    return dp[n - 1]; // We must end at n - 1
 }`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(n)",
@@ -589,6 +926,45 @@ public double knightProbability(int n, int k, int row, int column) {
     double prob = 0;
     for (double[] r : dp) for (double v : r) prob += v;
     return prob;
+}`,
+      cppTemplate: `// Knight Probability in Chessboard
+double knightProbability(int n, int k, int row, int column) {
+    // Two DP tables to track probabilities on a 2D grid
+    vector<vector<double>> dp(n, vector<double>(n, 0.0));
+    dp[row][column] = 1.0;
+    
+    int moves[8][2] = {{-2,-1}, {-2,1}, {-1,-2}, {-1,2}, {1,-2}, {1,2}, {2,-1}, {2,1}};
+    
+    for (int step = 0; step < k; step++) {
+        vector<vector<double>> nextDp(n, vector<double>(n, 0.0));
+        
+        for (int r = 0; r < n; r++) {
+            for (int c = 0; c < n; c++) {
+                if (dp[r][c] > 0) {
+                    for (auto& move : moves) {
+                        int nr = r + move[0];
+                        int nc = c + move[1];
+                        
+                        // If moved to a legitimate spot
+                        if (nr >= 0 && nr < n && nc >= 0 && nc < n) {
+                            nextDp[nr][nc] += dp[r][c] / 8.0; 
+                        }
+                    }
+                }
+            }
+        }
+        
+        dp = nextDp; // Proceed to next set of moves
+    }
+    
+    double totalProb = 0;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            totalProb += dp[i][j]; // Sum possible states
+        }
+    }
+    
+    return totalProb;
 }`,
       timeComplexity: "O(k * n²)",
       spaceComplexity: "O(n²)",

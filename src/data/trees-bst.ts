@@ -42,6 +42,26 @@ public List<List<Integer>> levelOrder(TreeNode root) {
     }
     return result;
 }`,
+      cppTemplate: `// Level Order Traversal (BFS)
+vector<vector<int>> levelOrder(TreeNode* root) {
+    vector<vector<int>> result;
+    if (root == nullptr) return result;
+    queue<TreeNode*> queue;
+    queue.push(root);
+    while (!queue.empty()) {
+        int levelSize = queue.size();
+        vector<int> currentLevel;
+        for (int i = 0; i < levelSize; i++) {
+            TreeNode* node = queue.front();
+            queue.pop();
+            currentLevel.push_back(node->val);
+            if (node->left != nullptr) queue.push(node->left);
+            if (node->right != nullptr) queue.push(node->right);
+        }
+        result.push_back(currentLevel);
+    }
+    return result;
+}`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(n)",
       problems: [
@@ -81,6 +101,23 @@ private int maxGain(TreeNode node) {
     // Why: return best single-side path for parent to use
     return node.val + Math.max(leftGain, rightGain);
 }`,
+      cppTemplate: `// Maximum Path Sum (any-to-any)
+int maxPathResult = INT_MIN;
+int maxPathSum(TreeNode* root) {
+    maxPathResult = INT_MIN;
+    maxGain(root);
+    return maxPathResult;
+}
+int maxGain(TreeNode* node) {
+    if (node == nullptr) return 0;
+    // Why: only take positive contributions from subtrees
+    int leftGain = max(0, maxGain(node->left));
+    int rightGain = max(0, maxGain(node->right));
+    // Why: path through this node using both subtrees
+    maxPathResult = max(maxPathResult, node->val + leftGain + rightGain);
+    // Why: return best single-side path for parent to use
+    return node->val + max(leftGain, rightGain);
+}`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(h) where h = height",
       problems: [
@@ -108,7 +145,7 @@ public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
     TreeNode right = lowestCommonAncestor(root.right, p, q);
     // Why: if both subtrees found a target, root is the LCA
     if (left != null && right != null) return root;
-    return left != null ? left : right;
+    return left != null x left : right;
 }
 // LCA of BST — O(h) using BST property
 public TreeNode lcaBST(TreeNode root, TreeNode p, TreeNode q) {
@@ -119,6 +156,25 @@ public TreeNode lcaBST(TreeNode root, TreeNode p, TreeNode q) {
         else return current; // Why: split point found
     }
     return null;
+}`,
+      cppTemplate: `// LCA of Binary Tree
+TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+    if (root == nullptr || root == p || root == q) return root;
+    TreeNode* left = lowestCommonAncestor(root->left, p, q);
+    TreeNode* right = lowestCommonAncestor(root->right, p, q);
+    // Why: if both subtrees found a target, root is the LCA
+    if (left != nullptr && right != nullptr) return root;
+    return left != nullptr x left : right;
+}
+// LCA of BST — O(h) using BST property
+TreeNode* lcaBST(TreeNode* root, TreeNode* p, TreeNode* q) {
+    TreeNode* current = root;
+    while (current != nullptr) {
+        if (p->val < current->val && q->val < current->val) current = current->left;
+        else if (p->val > current->val && q->val > current->val) current = current->right;
+        else return current; // Why: split point found
+    }
+    return nullptr;
 }`,
       timeComplexity: "O(n) binary tree, O(h) BST",
       spaceComplexity: "O(h)",
@@ -159,6 +215,29 @@ public int kthSmallest(TreeNode root, int k) {
         current = stack.pop();
         if (++count == k) return current.val;
         current = current.right;
+    }
+    return -1;
+}`,
+      cppTemplate: `// Validate BST
+bool isValidBST(TreeNode* root) {
+    return validate(root, LLONG_MIN, LLONG_MAX);
+}
+bool validate(TreeNode* node, long long min, long long max) {
+    if (node == nullptr) return true;
+    if (node->val <= min || node->val >= max) return false;
+    return validate(node->left, min, node->val) && validate(node->right, node->val, max);
+}
+// Kth Smallest in BST
+int kthSmallest(TreeNode* root, int k) {
+    vector<TreeNode*> stack;
+    TreeNode* current = root;
+    int count = 0;
+    while (current != nullptr || !stack.empty()) {
+        while (current != nullptr) { stack.push_back(current); current = current->left; }
+        current = stack.back();
+        stack.pop_back();
+        if (++count == k) return current->val;
+        current = current->right;
     }
     return -1;
 }`,
@@ -206,6 +285,34 @@ private TreeNode deserializeHelper(Queue<String> tokens) {
     node.right = deserializeHelper(tokens);
     return node;
 }`,
+      cppTemplate: `// Serialize and Deserialize Binary Tree
+string serialize(TreeNode* root) {
+    string out;
+    serializeHelper(root, out);
+    return out;
+}
+void serializeHelper(TreeNode* node, string& out) {
+    if (node == nullptr) { out += "#,"; return; }
+    out += to_string(node->val) + ",";
+    serializeHelper(node->left, out);
+    serializeHelper(node->right, out);
+}
+TreeNode* deserialize(string data) {
+    queue<string> tokens;
+    string token;
+    stringstream ss(data);
+    while (getline(ss, token, ',')) tokens.push(token);
+    return deserializeHelper(tokens);
+}
+TreeNode* deserializeHelper(queue<string>& tokens) {
+    string token = tokens.front();
+    tokens.pop();
+    if (token == "#") return nullptr;
+    TreeNode* node = new TreeNode(stoi(token));
+    node->left = deserializeHelper(tokens);
+    node->right = deserializeHelper(tokens);
+    return node;
+}`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(n)",
       problems: [
@@ -245,6 +352,30 @@ public List<Integer> morrisInorder(TreeNode root) {
                 predecessor.right = null; // Why: remove thread
                 result.add(current.val);
                 current = current.right;
+            }
+        }
+    }
+    return result;
+}`,
+      cppTemplate: `// Morris Inorder Traversal — O(1) Space
+vector<int> morrisInorder(TreeNode* root) {
+    vector<int> result;
+    TreeNode* current = root;
+    while (current != nullptr) {
+        if (current->left == nullptr) {
+            result.push_back(current->val);
+            current = current->right;
+        } else {
+            TreeNode* predecessor = current->left;
+            while (predecessor->right != nullptr && predecessor->right != current)
+                predecessor = predecessor->right;
+            if (predecessor->right == nullptr) {
+                predecessor->right = current; // Why: create thread
+                current = current->left;
+            } else {
+                predecessor->right = nullptr; // Why: remove thread
+                result.push_back(current->val);
+                current = current->right;
             }
         }
     }

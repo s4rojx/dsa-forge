@@ -42,6 +42,34 @@ void merge(int[] nums, int lo, int mid, int hi) {
     while (j <= hi) temp[k++] = nums[j++];
     System.arraycopy(temp, 0, nums, lo, temp.length);
 }`,
+      cppTemplate: `// Merge Sort — Count Inversions
+int count = 0;
+int countInversions(vector<int>& nums) {
+    count = 0;
+    mergeSort(nums, 0, nums.size() - 1);
+    return count;
+}
+void mergeSort(vector<int>& nums, int lo, int hi) {
+    if (lo >= hi) return;
+    int mid = lo + (hi - lo) / 2;
+    mergeSort(nums, lo, mid);
+    mergeSort(nums, mid + 1, hi);
+    merge(nums, lo, mid, hi);
+}
+void merge(vector<int>& nums, int lo, int mid, int hi) {
+    vector<int> temp(hi - lo + 1);
+    int i = lo, j = mid + 1, k = 0;
+    while (i <= mid && j <= hi) {
+        if (nums[i] <= nums[j]) temp[k++] = nums[i++];
+        else {
+            count += (mid - i + 1); // Why: all remaining left elements form inversions
+            temp[k++] = nums[j++];
+        }
+    }
+    while (i <= mid) temp[k++] = nums[i++];
+    while (j <= hi) temp[k++] = nums[j++];
+    for (int idx = 0; idx < temp.size(); idx++) nums[lo + idx] = temp[idx];
+}`,
       timeComplexity: "O(n log n)",
       spaceComplexity: "O(n)",
       problems: [
@@ -68,6 +96,22 @@ public int findKthLargest(int[] nums, int k) {
     return quickSelect(nums, 0, nums.length - 1, target);
 }
 int quickSelect(int[] nums, int lo, int hi, int target) {
+    int pivot = nums[hi];
+    int i = lo;
+    for (int j = lo; j < hi; j++) {
+        if (nums[j] <= pivot) { swap(nums, i, j); i++; }
+    }
+    swap(nums, i, hi);
+    if (i == target) return nums[i];
+    else if (i < target) return quickSelect(nums, i + 1, hi, target);
+    else return quickSelect(nums, lo, i - 1, target);
+}`,
+      cppTemplate: `// Quick Select — Kth Largest Element
+int findKthLargest(vector<int>& nums, int k) {
+    int target = nums.size() - k; // Why: kth largest = (n-k)th smallest
+    return quickSelect(nums, 0, nums.size() - 1, target);
+}
+int quickSelect(vector<int>& nums, int lo, int hi, int target) {
     int pivot = nums[hi];
     int i = lo;
     for (int j = lo; j < hi; j++) {
@@ -118,6 +162,25 @@ public String frequencySort(String s) {
     }
     return sb.toString();
 }`,
+      cppTemplate: `// Counting Sort — Sort by Frequency
+string frequencySort(string s) {
+    vector<int> freq(128, 0);
+    for (char c : s) freq[c]++;
+    // Why: bucket sort — group characters by frequency
+    vector<vector<char>> buckets(s.size() + 1);
+    for (int i = 0; i < 128; i++) {
+        if (freq[i] > 0) {
+            buckets[freq[i]].push_back((char) i);
+        }
+    }
+    string result;
+    for (int i = buckets.size() - 1; i > 0; i--) {
+        for (char c : buckets[i]) {
+            result.append(i, c);
+        }
+    }
+    return result;
+}`,
       timeComplexity: "O(n + k)",
       spaceComplexity: "O(n + k)",
       problems: [
@@ -146,6 +209,19 @@ public String largestNumber(int[] nums) {
     Arrays.sort(strs, (a, b) -> (b + a).compareTo(a + b));
     if (strs[0].equals("0")) return "0"; // Why: edge case all zeros
     return String.join("", strs);
+}`,
+      cppTemplate: `// Largest Number — Custom Comparator
+string largestNumber(vector<int>& nums) {
+    vector<string> strs(nums.size());
+    for (int i = 0; i < nums.size(); i++) strs[i] = to_string(nums[i]);
+    // Why: compare concatenations to determine optimal ordering
+    sort(strs.begin(), strs.end(), [](const string& a, const string& b) {
+        return a + b > b + a;
+    });
+    if (strs[0] == "0") return "0"; // Why: edge case all zeros
+    string result;
+    for (string& str : strs) result += str;
+    return result;
 }`,
       timeComplexity: "O(n log n * k) where k = comparison cost",
       spaceComplexity: "O(n)",

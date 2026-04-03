@@ -19,6 +19,7 @@ export interface Pattern {
   proTips: string[];
   approach: string;
   templateCode: string;
+  cppTemplate: string;
   timeComplexity: string;
   spaceComplexity: string;
   problems: Problem[];

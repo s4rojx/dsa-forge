@@ -50,6 +50,27 @@ public int lowerBound(int[] nums, int target) {
     }
     return left;
 }`,
+      cppTemplate: `// Binary Search — Standard
+int search(vector<int>& nums, int target) {
+    int left = 0, right = nums.size() - 1;
+    while (left <= right) {
+        int mid = left + (right - left) / 2; // Why: avoids overflow
+        if (nums[mid] == target) return mid;
+        else if (nums[mid] < target) left = mid + 1;
+        else right = mid - 1;
+    }
+    return -1;
+}
+// Lower Bound — First Position of Target
+int lowerBound(vector<int>& nums, int target) {
+    int left = 0, right = nums.size();
+    while (left < right) {
+        int mid = left + (right - left) / 2;
+        if (nums[mid] < target) left = mid + 1;
+        else right = mid; // Why: mid could be the answer, keep it
+    }
+    return left;
+}`,
       timeComplexity: "O(log n)",
       spaceComplexity: "O(1)",
       problems: [
@@ -104,6 +125,40 @@ boolean canFinish(int[] piles, int speed, int hours) {
         totalHours += (pile + speed - 1) / speed; // Why: ceiling division
     }
     return totalHours <= hours;
+}`,
+      cppTemplate: `// Search on Answer — Koko Eating Bananas (Minimum Speed)
+bool isPossible(int mid, vector<int>& piles, int h){
+    long req = 0; // total hours needed at speed = mid
+    for (auto it : piles) {
+        int time = it / mid;     // full hours
+        req += time;
+
+        if (it % mid != 0)       // if some bananas remain → need 1 more hour
+            req++;
+    }
+    // check if total hours fits within h
+    return req <= h;
+}
+int minEatingSpeed(vector<int>& piles, int h) {
+    int ans = -1;
+    int low = 1; // minimum possible speed
+    int high = INT_MIN;
+    // max pile size = maximum possible speed
+    for (auto it : piles) {
+        high = max(high, it);
+    }
+    // binary search on answer (speed)
+    while (low <= high) {
+        int mid = low + (high - low) / 2; // try this speed
+
+        if (isPossible(mid, piles, h)) {
+            ans = mid;        // valid speed, try smaller one
+            high = mid - 1;
+        } else {
+            low = mid + 1;    // too slow, increase speed
+        }
+    }
+    return ans;
 }`,
       timeComplexity: "O(n * log(max answer))",
       spaceComplexity: "O(1)",
@@ -166,6 +221,40 @@ public int findMin(int[] nums) {
     }
     return nums[left];
 }`,
+      cppTemplate: `// Search in Rotated Sorted Array
+int search(vector<int>& nums, int target) {
+    int low = 0, high = nums.size() - 1;
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        if (nums[mid] == target)
+            return mid;
+        if (nums[low] <= nums[mid]) {
+            if (nums[low] <= target && target <= nums[mid])
+                high = mid - 1;
+            else
+                low = mid + 1;
+        } else {
+            if (nums[mid] <= target && target <= nums[high])
+                low = mid + 1;
+            else
+                high = mid - 1;
+        }
+    }
+    return -1;
+}
+
+// Find Minimum in Rotated Sorted Array
+int findMin(vector<int>& nums) {
+    int low = 0, high = nums.size()-1;
+    while(low < high){
+        int mid = low + (high - low) / 2;
+        if(nums[mid] > nums[high])
+            low = mid+1;
+        else
+            high = mid;
+    }
+    return nums[low];
+}`,
       timeComplexity: "O(log n)",
       spaceComplexity: "O(1)",
       problems: [
@@ -216,6 +305,22 @@ int findBound(int[] nums, int target, boolean isFirst) {
         else right = mid - 1;
     }
     return result;
+}`,
+      cppTemplate: `// Find First and Last Position of Element
+vector<int> searchRange(vector<int>& nums, int target) {
+
+    // first position where target could appear
+    int first = lower_bound(nums.begin(), nums.end(), target) - nums.begin();
+
+    // if target not present
+    if (first == nums.size() || nums[first] != target)
+        return {-1, -1};
+
+    // position just after the last occurrence of target
+    int last = upper_bound(nums.begin(), nums.end(), target) - nums.begin();
+
+    // last-1 gives actual last index of target
+    return {first, last - 1};
 }`,
       timeComplexity: "O(log n)",
       spaceComplexity: "O(1)",

@@ -25,6 +25,17 @@ public int maxSumSubarray(int[] nums, int k) {
     }
     return maxSum;
 }`,
+      cppTemplate: `// Fixed Window — Maximum Sum Subarray of Size K
+int maxSumSubarray(vector<int>& nums, int k) {
+    int windowSum = 0, maxSum = 0;
+    for (int i = 0; i < k; i++) windowSum += nums[i]; // Why: build initial window
+    maxSum = windowSum;
+    for (int i = k; i < nums.size(); i++) {
+        windowSum += nums[i] - nums[i - k]; // Why: slide — add right, remove left
+        maxSum = max(maxSum, windowSum);
+    }
+    return maxSum;
+}`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(1)",
       problems: [
@@ -77,7 +88,41 @@ public String minWindow(String s, String t) {
             left++;
         }
     }
-    return minLen == Integer.MAX_VALUE ? "" : s.substring(minStart, minStart + minLen);
+    return minLen == Integer.MAX_VALUE x "" : s.substring(minStart, minStart + minLen);
+}`,
+      cppTemplate: `// Variable Window — Longest Substring Without Repeating Characters
+int lengthOfLongestSubstring(string s) {
+    unordered_map<char, int> lastSeen;
+    int maxLen = 0, left = 0;
+    for (int right = 0; right < s.size(); right++) {
+        char ch = s[right];
+        if (lastSeen.count(ch) && lastSeen[ch] >= left) {
+            left = lastSeen[ch] + 1; // Why: shrink past the duplicate
+        }
+        lastSeen[ch] = right;
+        maxLen = max(maxLen, right - left + 1);
+    }
+    return maxLen;
+}
+// Minimum Window Substring
+string minWindow(string s, string t) {
+    unordered_map<char, int> need, have;
+    for (char c : t) need[c]++;
+    int required = need.size(), formed = 0;
+    int left = 0, minLen = INT_MAX, minStart = 0;
+    for (int right = 0; right < s.size(); right++) {
+        char c = s[right];
+        have[c]++;
+        if (need.count(c) && have[c] == need[c]) formed++;
+        while (formed == required) {
+            if (right - left + 1 < minLen) { minLen = right - left + 1; minStart = left; }
+            char lc = s[left];
+            have[lc]--;
+            if (need.count(lc) && have[lc] < need[lc]) formed--;
+            left++;
+        }
+    }
+    return minLen == INT_MAX x "" : s.substr(minStart, minLen);
 }`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(k) where k = alphabet size",
@@ -115,6 +160,20 @@ public int maxArea(int[] height) {
     }
     return maxWater;
 }`,
+      cppTemplate: `// Two-Pointer Opposite — Container With Most Water
+int maxArea(vector<int>& height) {
+    int left = 0, right = height.size() - 1;
+    int maxWater = 0;
+    while (left < right) {
+        int width = right - left;
+        int h = min(height[left], height[right]);
+        maxWater = max(maxWater, width * h);
+        // Why: move the shorter line — keeping it can only decrease area
+        if (height[left] < height[right]) left++;
+        else right--;
+    }
+    return maxWater;
+}`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(1)",
       problems: [
@@ -140,6 +199,18 @@ public int removeDuplicates(int[] nums) {
     if (nums.length == 0) return 0;
     int writePtr = 1; // Why: first element is always unique
     for (int readPtr = 1; readPtr < nums.length; readPtr++) {
+        if (nums[readPtr] != nums[readPtr - 1]) {
+            nums[writePtr] = nums[readPtr]; // Why: new unique element found
+            writePtr++;
+        }
+    }
+    return writePtr; // Why: number of unique elements
+}`,
+      cppTemplate: `// Same Direction — Remove Duplicates from Sorted Array
+int removeDuplicates(vector<int>& nums) {
+    if (nums.size() == 0) return 0;
+    int writePtr = 1; // Why: first element is always unique
+    for (int readPtr = 1; readPtr < nums.size(); readPtr++) {
         if (nums[readPtr] != nums[readPtr - 1]) {
             nums[writePtr] = nums[readPtr]; // Why: new unique element found
             writePtr++;

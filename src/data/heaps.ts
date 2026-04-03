@@ -30,6 +30,27 @@ public int[] topKFrequent(int[] nums, int k) {
     for (int i = 0; i < k; i++) result[i] = minHeap.poll();
     return result;
 }`,
+      cppTemplate: `// Top-K Frequent Elements
+vector<int> topKFrequent(vector<int>& nums, int k) {
+    unordered_map<int, int> freqMap;
+    for (int num : nums) freqMap[num]++;
+    // Why: min-heap by frequency — keeps top-k most frequent
+    auto compare = [&freqMap](int a, int b) {
+        return freqMap[a] > freqMap[b];
+    };
+    priority_queue<int, vector<int>, decltype(compare)> minHeap(compare);
+    for (auto& entry : freqMap) {
+        int num = entry.first;
+        minHeap.push(num);
+        if (minHeap.size() > k) minHeap.pop(); // Why: remove least frequent
+    }
+    vector<int> result(k);
+    for (int i = 0; i < k; i++) {
+        result[i] = minHeap.top();
+        minHeap.pop();
+    }
+    return result;
+}`,
       timeComplexity: "O(n log k)",
       spaceComplexity: "O(n + k)",
       problems: [
@@ -69,6 +90,27 @@ public ListNode mergeKLists(ListNode[] lists) {
         if (smallest.next != null) minHeap.offer(smallest.next);
     }
     return dummy.next;
+}`,
+      cppTemplate: `// Merge K Sorted Lists
+ListNode* mergeKLists(vector<ListNode*>& lists) {
+    auto compare = [](ListNode* a, ListNode* b) {
+        return a->val > b->val;
+    };
+    priority_queue<ListNode*, vector<ListNode*>, decltype(compare)> minHeap(compare);
+    // Why: seed the heap with heads of all non-empty lists
+    for (ListNode* head : lists)
+        if (head != nullptr) minHeap.push(head);
+    ListNode* dummy = new ListNode(0);
+    ListNode* tail = dummy;
+    while (!minHeap.empty()) {
+        ListNode* smallest = minHeap.top();
+        minHeap.pop();
+        tail->next = smallest;
+        tail = tail->next;
+        // Why: push next node from the same list
+        if (smallest->next != nullptr) minHeap.push(smallest->next);
+    }
+    return dummy->next;
 }`,
       timeComplexity: "O(N log K) where N = total elements",
       spaceComplexity: "O(K)",
@@ -114,6 +156,31 @@ class MedianFinder {
         return (maxHeap.peek() + minHeap.peek()) / 2.0;
     }
 }`,
+      cppTemplate: `// Find Median from Data Stream
+class MedianFinder {
+public:
+    priority_queue<int> maxHeap; // Why: lower half — largest of small numbers on top
+    priority_queue<int, vector<int>, greater<int>> minHeap; // Why: upper half — smallest of large numbers on top
+    
+    MedianFinder() {}
+    
+    void addNum(int num) {
+        maxHeap.push(num);
+        minHeap.push(maxHeap.top()); // Why: ensure max-heap top <= min-heap top
+        maxHeap.pop();
+        // Why: rebalance — max-heap should be same size or 1 larger
+        if (minHeap.size() > maxHeap.size()) {
+            maxHeap.push(minHeap.top());
+            minHeap.pop();
+        }
+    }
+    
+    double findMedian() {
+        if (maxHeap.size() > minHeap.size())
+            return maxHeap.top();
+        return (maxHeap.top() + minHeap.top()) / 2.0;
+    }
+}`,
       timeComplexity: "O(log n) insert, O(1) median",
       spaceComplexity: "O(n)",
       problems: [
@@ -144,6 +211,19 @@ public int minMeetingRooms(int[][] intervals) {
             endTimes.poll();
         }
         endTimes.offer(interval[1]); // Why: add this meeting's end time
+    }
+    return endTimes.size(); // Why: heap size = number of rooms needed
+}`,
+      cppTemplate: `// Meeting Rooms II — Minimum Rooms Needed
+int minMeetingRooms(vector<vector<int>>& intervals) {
+    sort(intervals.begin(), intervals.end()); // Why: sort by start time
+    priority_queue<int, vector<int>, greater<int>> endTimes;
+    for (vector<int>& interval : intervals) {
+        // Why: if earliest ending meeting finishes before this one starts, reuse room
+        if (!endTimes.empty() && endTimes.top() <= interval[0]) {
+            endTimes.pop();
+        }
+        endTimes.push(interval[1]); // Why: add this meeting's end time
     }
     return endTimes.size(); // Why: heap size = number of rooms needed
 }`,
