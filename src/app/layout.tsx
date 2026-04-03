@@ -25,7 +25,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DSA Forge - Master DSA by Mastering the Patterns",
+  title: "DSA Forge",
   description:
     "500+ problems. 50+ patterns. 15 topics. One framework - Java. Master data structures and algorithms through pattern-based learning.",
   keywords: [
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     "Trees",
   ],
   openGraph: {
-    title: "DSA Forge - Master DSA by Mastering the Patterns",
+    title: "DSA Forge",
     description:
       "500+ problems. 50+ patterns. 15 topics. Master DSA through pattern-based learning.",
     type: "website",
