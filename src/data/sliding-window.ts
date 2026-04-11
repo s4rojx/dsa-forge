@@ -88,7 +88,7 @@ public String minWindow(String s, String t) {
             left++;
         }
     }
-    return minLen == Integer.MAX_VALUE x "" : s.substring(minStart, minStart + minLen);
+    return minLen == Integer.MAX_VALUE ? "" : s.substring(minStart, minStart + minLen);
 }`,
       cppTemplate: `// Variable Window — Longest Substring Without Repeating Characters
 int lengthOfLongestSubstring(string s) {
@@ -122,7 +122,7 @@ string minWindow(string s, string t) {
             left++;
         }
     }
-    return minLen == INT_MAX x "" : s.substr(minStart, minLen);
+    return minLen == INT_MAX ? "" : s.substr(minStart, minLen);
 }`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(k) where k = alphabet size",

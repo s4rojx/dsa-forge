@@ -145,7 +145,7 @@ public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
     TreeNode right = lowestCommonAncestor(root.right, p, q);
     // Why: if both subtrees found a target, root is the LCA
     if (left != null && right != null) return root;
-    return left != null x left : right;
+    return left != null ? left : right;
 }
 // LCA of BST — O(h) using BST property
 public TreeNode lcaBST(TreeNode root, TreeNode p, TreeNode q) {
@@ -164,7 +164,7 @@ TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
     TreeNode* right = lowestCommonAncestor(root->right, p, q);
     // Why: if both subtrees found a target, root is the LCA
     if (left != nullptr && right != nullptr) return root;
-    return left != nullptr x left : right;
+    return left != nullptr ? left : right;
 }
 // LCA of BST — O(h) using BST property
 TreeNode* lcaBST(TreeNode* root, TreeNode* p, TreeNode* q) {

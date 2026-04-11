@@ -122,7 +122,17 @@ export default function ProgressProvider({ children }: { children: React.ReactNo
     }
 
     if (!session?.user?.id) {
-      setProgress({});
+      let localProgress = {};
+      try {
+        const stored = localStorage.getItem("dsa_progress");
+        if (stored) {
+          localProgress = JSON.parse(stored);
+        }
+      } catch (e) {
+        console.error("Failed to read local progress", e);
+      }
+      
+      setProgress(localProgress);
       setStreakData(emptyStreakData);
       setUserStats(emptyUserStats);
       setIsLoaded(true);
@@ -160,12 +170,9 @@ export default function ProgressProvider({ children }: { children: React.ReactNo
 
   const toggleProblem = useCallback(
     async (problemId: string) => {
-      if (!session?.user?.id) {
-        return false;
-      }
-
       const wasCompleted = Boolean(progress[problemId]);
 
+      // Optimistic update for UI feel
       setProgress((current) => {
         const next = { ...current };
         if (wasCompleted) {
@@ -173,8 +180,22 @@ export default function ProgressProvider({ children }: { children: React.ReactNo
         } else {
           next[problemId] = true;
         }
+
+        // If unauthenticated, save to local storage immediately
+        if (!session?.user?.id) {
+          try {
+            localStorage.setItem("dsa_progress", JSON.stringify(next));
+          } catch (e) {
+            console.error("Local storage error:", e);
+          }
+        }
         return next;
       });
+
+      // If not authenticated, we only do local state
+      if (!session?.user?.id) {
+        return true;
+      }
 
       try {
         const response = await fetch("/api/progress", {
@@ -196,6 +217,7 @@ export default function ProgressProvider({ children }: { children: React.ReactNo
         return true;
       } catch (error) {
         console.error("Toggle progress failed:", error);
+        // Rollback on failure
         setProgress((current) => {
           const reverted = { ...current };
           if (wasCompleted) {

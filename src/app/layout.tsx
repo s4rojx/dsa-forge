@@ -57,8 +57,9 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${rubik.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
     >
-      <body className="bg-bg-root font-jakarta text-text-1 antialiased">
+      <body className="bg-bg-root font-jakarta text-text-1 antialiased" suppressHydrationWarning>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

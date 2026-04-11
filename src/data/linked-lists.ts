@@ -232,7 +232,7 @@ public ListNode mergeTwoLists(ListNode l1, ListNode l2) {
         }
         tail = tail.next;
     }
-    tail.next = (l1 != null) x l1 : l2; // Why: append remaining nodes
+    tail.next = (l1 != null) ? l1 : l2; // Why: append remaining nodes
     return dummy.next;
 }
 
@@ -269,7 +269,7 @@ ListNode* mergeTwoLists(ListNode* l1, ListNode* l2) {
         }
         tail = tail->next;
     }
-    tail->next = (l1 != nullptr) x l1 : l2; // Why: append remaining nodes
+    tail->next = (l1 != nullptr) ? l1 : l2; // Why: append remaining nodes
     return dummy->next;
 }
 
@@ -467,7 +467,7 @@ public Node copyRandomList(Node head) {
     while (current != null) {
         Node clone = current.next;
         current.next = clone.next;
-        clone.next = (clone.next != null) x clone.next.next : null;
+        clone.next = (clone.next != null) ? clone.next.next : null;
         current = current.next;
     }
     return cloneHead;
@@ -502,7 +502,7 @@ Node* copyRandomList(Node* head) {
     while (current != nullptr) {
         Node* clone = current->next;
         current->next = clone->next;
-        clone->next = (clone->next != nullptr) x clone->next.next : nullptr;
+        clone->next = (clone->next != nullptr) ? clone->next.next : nullptr;
         current = current->next;
     }
     return cloneHead;

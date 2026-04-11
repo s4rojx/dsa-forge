@@ -112,7 +112,7 @@ public int[] topologicalSort(int numCourses, int[][] prerequisites) {
         }
     }
     // Why: if index != numCourses, cycle exists
-    return index == numCourses x order : new int[0];
+    return index == numCourses ? order : new int[0];
 }`,
       cppTemplate: `// Topological Sort — Kahn's Algorithm (BFS)
 vector<int> topologicalSort(int numCourses, vector<vector<int>>& prerequisites) {
@@ -137,7 +137,7 @@ vector<int> topologicalSort(int numCourses, vector<vector<int>>& prerequisites) 
         }
     }
     // Why: if index != numCourses, cycle exists
-    return index == numCourses x order : vector<int>{};
+    return index == numCourses ? order : vector<int>{};
 }`,
       timeComplexity: "O(V + E)",
       spaceComplexity: "O(V + E)",
@@ -251,7 +251,7 @@ public int networkDelayTime(int[][] times, int n, int k) {
     }
     int maxDist = 0;
     for (int i = 1; i <= n; i++) maxDist = Math.max(maxDist, dist[i]);
-    return maxDist == Integer.MAX_VALUE x -1 : maxDist;
+    return maxDist == Integer.MAX_VALUE ? -1 : maxDist;
 }`,
       cppTemplate: `// Dijkstra's — Network Delay Time
 int networkDelayTime(vector<vector<int>>& times, int n, int k) {
@@ -277,7 +277,7 @@ int networkDelayTime(vector<vector<int>>& times, int n, int k) {
     }
     int maxDist = 0;
     for (int i = 1; i <= n; i++) maxDist = max(maxDist, dist[i]);
-    return maxDist == INT_MAX x -1 : maxDist;
+    return maxDist == INT_MAX ? -1 : maxDist;
 }`,
       timeComplexity: "O((V + E) log V)",
       spaceComplexity: "O(V + E)",
@@ -315,7 +315,7 @@ public int findCheapestPrice(int n, int[][] flights, int src, int dst, int k) {
         }
         prices = temp;
     }
-    return prices[dst] == Integer.MAX_VALUE x -1 : prices[dst];
+    return prices[dst] == Integer.MAX_VALUE ? -1 : prices[dst];
 }`,
       cppTemplate: `// Bellman-Ford — Cheapest Flights Within K Stops
 int findCheapestPrice(int n, vector<vector<int>>& flights, int src, int dst, int k) {
@@ -332,7 +332,7 @@ int findCheapestPrice(int n, vector<vector<int>>& flights, int src, int dst, int
         }
         prices = temp;
     }
-    return prices[dst] == INT_MAX x -1 : prices[dst];
+    return prices[dst] == INT_MAX ? -1 : prices[dst];
 }`,
       timeComplexity: "O(V * E)",
       spaceComplexity: "O(V)",

@@ -1,110 +1,227 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import AppShell from "@/components/AppShell";
 import DifficultyBadge from "@/components/DifficultyBadge";
 import ProgressBar from "@/components/ProgressBar";
 import { allTopics } from "@/data";
 import { useProgress } from "@/hooks/useProgress";
 
+/* ──────────────────────────────────────────────
+   Heatmap — GitHub-style contribution graph
+   ────────────────────────────────────────────── */
+
+const DAY_LABELS = ["", "Mon", "", "Wed", "", "Fri", ""] as const;
+
+function getHeatColor(count: number): string {
+  if (count === 0) return "var(--hm-0)";
+  if (count <= 1) return "var(--hm-1)";
+  if (count <= 3) return "var(--hm-2)";
+  if (count <= 5) return "var(--hm-3)";
+  return "var(--hm-4)";
+}
+
+function formatDateLabel(dateStr: string): string {
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  return d.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 function Heatmap({
   days,
 }: {
-  days: Array<{
+  days: Array<{ date: string; count: number }>;
+}) {
+  const CELL = 13;
+  const GAP = 3;
+  const STEP = CELL + GAP;
+  const LABEL_W = 32;
+
+  const [tooltip, setTooltip] = useState<{
+    x: number;
+    y: number;
     date: string;
     count: number;
-  }>;
-}) {
-  const cellSize = 12;
-  const gap = 3;
+  } | null>(null);
 
-  const { cells, months, width } = useMemo(() => {
-    if (days.length === 0) {
-      return {
-        cells: [] as Array<{ x: number; y: number; date: string; count: number }>,
-        months: [] as Array<{ label: string; x: number }>,
-        width: 0,
-      };
-    }
+  /* Build the full 52-week grid; always show all cells even when empty */
+  const { cells, monthLabels, svgW, svgH } = useMemo(() => {
+    const WEEKS = 52;
+    const today = new Date();
+    const todayUtc = new Date(
+      Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())
+    );
 
-    const firstVisibleDate = new Date(`${days[0].date}T00:00:00.000Z`);
-    const gridStart = new Date(firstVisibleDate);
-    gridStart.setUTCDate(gridStart.getUTCDate() - gridStart.getUTCDay());
-    const gridStartTime = gridStart.getTime();
-    const monthLabels = new Map<string, { label: string; x: number }>();
+    // Start grid from (WEEKS * 7 - 1) days ago, snapped to a Sunday
+    const startDate = new Date(todayUtc);
+    startDate.setUTCDate(startDate.getUTCDate() - (WEEKS * 7 - 1));
+    startDate.setUTCDate(startDate.getUTCDate() - startDate.getUTCDay()); // snap to Sun
 
-    const nextCells = days.map((day) => {
-      const date = new Date(`${day.date}T00:00:00.000Z`);
-      const weekIndex = Math.floor(
-        (date.getTime() - gridStartTime) / (7 * 24 * 60 * 60 * 1000)
+    const countMap = new Map<string, number>();
+    for (const d of days) countMap.set(d.date, d.count);
+
+    const gridCells: Array<{
+      col: number;
+      row: number;
+      date: string;
+      count: number;
+    }> = [];
+
+    const monthMap = new Map<string, { label: string; col: number }>();
+
+    const cursor = new Date(startDate);
+    while (cursor <= todayUtc) {
+      const key = cursor.toISOString().slice(0, 10);
+      const dayOfWeek = cursor.getUTCDay(); // 0 = Sun
+      const weeksSinceStart = Math.floor(
+        (cursor.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000)
       );
-      const x = weekIndex * (cellSize + gap);
-      const y = date.getUTCDay() * (cellSize + gap);
-      const monthKey = `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
+      gridCells.push({
+        col: weeksSinceStart,
+        row: dayOfWeek,
+        date: key,
+        count: countMap.get(key) ?? 0,
+      });
 
-      if (!monthLabels.has(monthKey)) {
-        monthLabels.set(monthKey, {
-          label: date.toLocaleString("en-US", {
+      // Track month labels at start of each month
+      const mKey = `${cursor.getUTCFullYear()}-${cursor.getUTCMonth()}`;
+      if (!monthMap.has(mKey)) {
+        monthMap.set(mKey, {
+          label: cursor.toLocaleDateString("en-US", {
             month: "short",
             timeZone: "UTC",
           }),
-          x,
+          col: weeksSinceStart,
         });
       }
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
+    }
 
-      return {
-        x,
-        y,
-        date: day.date,
-        count: day.count,
-      };
-    });
-
-    const maxWeekOffset = nextCells.reduce((max, cell) => Math.max(max, cell.x), 0);
-
+    const maxCol = gridCells.reduce((m, c) => Math.max(m, c.col), 0);
     return {
-      cells: nextCells,
-      months: Array.from(monthLabels.values()),
-      width: maxWeekOffset + cellSize,
+      cells: gridCells,
+      monthLabels: Array.from(monthMap.values()),
+      svgW: LABEL_W + (maxCol + 1) * STEP,
+      svgH: 7 * STEP,
     };
-  }, [days]);
+  }, [days, STEP, LABEL_W]);
 
-  const getColor = (count: number) => {
-    if (count === 0) return "#1E1E1E";
-    if (count <= 2) return "#3D1809";
-    if (count <= 5) return "#7A3113";
-    return "#BB4A1E";
-  };
+  const handleMouseEnter = useCallback(
+    (e: React.MouseEvent<SVGRectElement>, cell: (typeof cells)[0]) => {
+      const rect = (e.target as SVGRectElement).getBoundingClientRect();
+      setTooltip({
+        x: rect.left + rect.width / 2,
+        y: rect.top,
+        date: cell.date,
+        count: cell.count,
+      });
+    },
+    []
+  );
+  const handleMouseLeave = useCallback(() => setTooltip(null), []);
 
   return (
-    <div className="overflow-x-auto">
-      <div className="mb-3 flex text-[10px] font-mono uppercase tracking-[0.18em] text-text-3">
-        {months.map((month) => (
-          <span
-            key={`${month.label}-${month.x}`}
-            className="shrink-0"
-            style={{ marginLeft: month.x === 0 ? 0 : month.x - 24 }}
-          >
-            {month.label}
-          </span>
-        ))}
+    <div className="relative">
+      {/* Month labels */}
+      <div className="overflow-x-auto pb-1" style={{ paddingLeft: LABEL_W }}>
+        <div className="relative" style={{ width: svgW - LABEL_W, height: 18 }}>
+          {monthLabels.map((m, i) => (
+            <span
+              key={`${m.label}-${m.col}-${i}`}
+              className="absolute top-0 text-[10px] font-mono uppercase tracking-widest"
+              style={{
+                left: m.col * STEP,
+                color: "var(--text-3)",
+              }}
+            >
+              {m.label}
+            </span>
+          ))}
+        </div>
       </div>
 
-      <svg width={Math.max(width, 720)} height={7 * (cellSize + gap)} className="block">
-        {cells.map((cell) => (
-          <rect
-            key={cell.date}
-            x={cell.x}
-            y={cell.y}
-            width={cellSize}
-            height={cellSize}
-            rx={2}
-            fill={getColor(cell.count)}
-          >
-            <title>{`${cell.date}: ${cell.count} solved`}</title>
-          </rect>
+      {/* Grid + Day labels wrapper */}
+      <div className="overflow-x-auto">
+        <svg
+          width={svgW}
+          height={svgH}
+          className="block"
+          role="img"
+          aria-label="52-week activity heatmap"
+        >
+          {/* Day labels (Mon, Wed, Fri) */}
+          {DAY_LABELS.map((label, idx) =>
+            label ? (
+              <text
+                key={label}
+                x={0}
+                y={idx * STEP + CELL - 1}
+                fill="var(--text-3)"
+                fontSize={9}
+                fontFamily="monospace"
+                textAnchor="start"
+              >
+                {label}
+              </text>
+            ) : null
+          )}
+
+          {/* Cells */}
+          {cells.map((cell) => (
+            <rect
+              key={cell.date}
+              x={LABEL_W + cell.col * STEP}
+              y={cell.row * STEP}
+              width={CELL}
+              height={CELL}
+              rx={3}
+              fill={getHeatColor(cell.count)}
+              className="heatmap-cell"
+              onMouseEnter={(e) => handleMouseEnter(e, cell)}
+              onMouseLeave={handleMouseLeave}
+            />
+          ))}
+        </svg>
+      </div>
+
+      {/* Floating tooltip */}
+      {tooltip && (
+        <div
+          className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-full"
+          style={{ left: tooltip.x, top: tooltip.y - 8 }}
+        >
+          <div className="rounded-lg border border-border-hover bg-bg-elevated px-3 py-2 text-center shadow-xl shadow-black/40">
+            <p className="text-[11px] font-semibold text-text-1">
+              {tooltip.count === 0
+                ? "No problems solved"
+                : `${tooltip.count} problem${tooltip.count > 1 ? "s" : ""} solved`}
+            </p>
+            <p className="mt-0.5 text-[10px] font-mono text-text-3">
+              {formatDateLabel(tooltip.date)}
+            </p>
+          </div>
+          {/* tooltip arrow */}
+          <div className="mx-auto h-0 w-0 border-l-[5px] border-r-[5px] border-t-[5px] border-l-transparent border-r-transparent border-t-border-hover" />
+        </div>
+      )}
+
+      {/* Legend */}
+      <div className="mt-3 flex items-center justify-end gap-1.5 text-[10px] font-mono text-text-3">
+        <span className="mr-1">Less</span>
+        {[0, 1, 2, 3, 4].map((lvl) => (
+          <div
+            key={lvl}
+            className="h-[13px] w-[13px] rounded-[3px]"
+            style={{ backgroundColor: `var(--hm-${lvl})` }}
+          />
         ))}
-      </svg>
+        <span className="ml-1">More</span>
+      </div>
     </div>
   );
 }
@@ -157,26 +274,6 @@ export default function DashboardPage() {
             52-Week Activity
           </h2>
           <Heatmap days={streakData.days} />
-          <div className="mt-4 flex items-center gap-2 text-[10px] font-mono text-text-3">
-            <span>Less</span>
-            {[0, 1, 3, 6].map((count) => (
-              <div
-                key={count}
-                className="h-3 w-3 rounded-sm"
-                style={{
-                  backgroundColor:
-                    count === 0
-                      ? "#1E1E1E"
-                      : count <= 2
-                        ? "#3D1809"
-                        : count <= 5
-                          ? "#7A3113"
-                          : "#BB4A1E",
-                }}
-              />
-            ))}
-            <span>More</span>
-          </div>
         </div>
 
         <div className="rounded-xl border border-border bg-bg-card p-6">

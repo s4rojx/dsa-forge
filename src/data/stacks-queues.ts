@@ -133,7 +133,7 @@ class MinStack {
     public void push(int val) {
         stack.push(val);
         // Why: track running minimum — push min of val and current min
-        int currentMin = minStack.isEmpty() x val : Math.min(val, minStack.peek());
+        int currentMin = minStack.isEmpty() ? val : Math.min(val, minStack.peek());
         minStack.push(currentMin);
     }
     
@@ -161,7 +161,7 @@ public:
     void push(int val) {
         stack.push_back(val);
         // Why: track running minimum — push min of val and current min
-        int currentMin = minStack.empty() x val : min(val, minStack.back());
+        int currentMin = minStack.empty() ? val : min(val, minStack.back());
         minStack.push_back(currentMin);
     }
     
@@ -356,8 +356,8 @@ class MyCircularDeque {
         return true;
     }
     
-    public int getFront() { return isEmpty() x -1 : data[front]; }
-    public int getRear() { return isEmpty() x -1 : data[rear]; }
+    public int getFront() { return isEmpty() ? -1 : data[front]; }
+    public int getRear() { return isEmpty() ? -1 : data[rear]; }
     public boolean isEmpty() { return size == 0; }
     public boolean isFull() { return size == capacity; }
 }`,
@@ -399,8 +399,8 @@ public:
         return true;
     }
     
-    int getFront() { return isEmpty() x -1 : data[front]; }
-    int getRear() { return isEmpty() x -1 : data[rear]; }
+    int getFront() { return isEmpty() ? -1 : data[front]; }
+    int getRear() { return isEmpty() ? -1 : data[rear]; }
     bool isEmpty() { return size == 0; }
     bool isFull() { return size == capacity; }
 }`,
@@ -464,7 +464,7 @@ public int[] previousSmaller(int[] nums) {
         while (!stack.isEmpty() && stack.peek() >= nums[i]) {
             stack.pop();
         }
-        result[i] = stack.isEmpty() x -1 : stack.peek();
+        result[i] = stack.isEmpty() ? -1 : stack.peek();
         stack.push(nums[i]);
     }
     return result;
@@ -499,7 +499,7 @@ vector<int> previousSmaller(vector<int>& nums) {
         while (!stack.empty() && stack.back() >= nums[i]) {
             stack.pop_back();
         }
-        result[i] = stack.empty() x -1 : stack.back();
+        result[i] = stack.empty() ? -1 : stack.back();
         stack.push_back(nums[i]);
     }
     return result;

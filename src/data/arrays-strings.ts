@@ -129,7 +129,7 @@ public int maxSubarraySumCircular(int[] nums) {
         totalSum += num;
     }
     // Why: if all elements are negative, maxSum handles it; otherwise check circular case
-    return maxSum > 0 x Math.max(maxSum, totalSum - minSum) : maxSum;
+    return maxSum > 0 ? Math.max(maxSum, totalSum - minSum) : maxSum;
 }`,
       cppTemplate: `// Kadane's Algorithm — Maximum Subarray Sum
 int maxSubArray(vector<int> &nums)

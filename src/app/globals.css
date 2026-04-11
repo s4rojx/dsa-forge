@@ -17,6 +17,13 @@
   --success: #4CAF72;
   --danger: #E05C5C;
   --code-bg: #111111;
+
+  /* Heatmap colour scale — 5 intensity levels */
+  --hm-0: #1F1F1F;
+  --hm-1: #3D1E10;
+  --hm-2: #6B2E12;
+  --hm-3: #9B3E16;
+  --hm-4: #D45A1E;
 }
 
 * {
@@ -152,4 +159,20 @@ pre code.hljs {
   .hide-desktop {
     display: none !important;
   }
+}
+
+/* ============================================
+   Heatmap contribution graph cells
+   ============================================ */
+.heatmap-cell {
+  transition: all 0.15s ease;
+  stroke: transparent;
+  stroke-width: 1px;
+  cursor: pointer;
+}
+
+.heatmap-cell:hover {
+  stroke: var(--text-2);
+  stroke-width: 1.5px;
+  filter: brightness(1.35);
 }

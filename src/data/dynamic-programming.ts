@@ -300,7 +300,7 @@ public int coinChange(int[] coins, int amount) {
     for (int coin : coins)
         for (int j = coin; j <= amount; j++) // Why: forward — reuse allowed
             dp[j] = Math.min(dp[j], dp[j - coin] + 1);
-    return dp[amount] > amount x -1 : dp[amount];
+    return dp[amount] > amount ? -1 : dp[amount];
 }`,
       cppTemplate: `// Coin Change — Minimum Coins
 int coinChange(vector<int>& coins, int amount) {
@@ -317,7 +317,7 @@ int coinChange(vector<int>& coins, int amount) {
     }
     
     // Check if the amount was reachable
-    return dp[amount] > amount x -1 : dp[amount];
+    return dp[amount] > amount ? -1 : dp[amount];
 }`,
       timeComplexity: "O(n * W)",
       spaceComplexity: "O(W)",
@@ -781,10 +781,10 @@ public int countEvenDigitSum(int num) {
     return (int) solve(digits, 0, true, 0);
 }
 long solve(String digits, int pos, boolean tight, int sum) {
-    if (pos == digits.length()) return sum % 2 == 0 x 1 : 0;
-    int t = tight x 1 : 0;
+    if (pos == digits.length()) return sum % 2 == 0 ? 1 : 0;
+    int t = tight ? 1 : 0;
     if (memo[pos][t][sum] != -1) return memo[pos][t][sum];
-    int limit = tight x digits.charAt(pos) - '0' : 9;
+    int limit = tight ? digits.charAt(pos) - '0' : 9;
     long count = 0;
     for (int d = 0; d <= limit; d++) {
         count += solve(digits, pos + 1, tight && d == limit, sum + d);
@@ -797,13 +797,13 @@ long solve(String digits, int pos, boolean tight, int sum) {
 long long memo[20][2][200];
 
 long long solve(string& digits, int pos, bool tight, int sum) {
-    if (pos == digits.size()) return (sum % 2 == 0) x 1 : 0;
+    if (pos == digits.size()) return (sum % 2 == 0) ? 1 : 0;
     
-    int t = tight x 1 : 0;
+    int t = tight ? 1 : 0;
     if (memo[pos][t][sum] != -1) return memo[pos][t][sum];
     
     // Determine the upper bound for the current digit based on 'tight' logic
-    int limit = tight x (digits[pos] - '0') : 9;
+    int limit = tight ? (digits[pos] - '0') : 9;
     long long count = 0;
     
     for (int d = 0; d <= limit; d++) {

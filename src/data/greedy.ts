@@ -274,7 +274,7 @@ public int canCompleteCircuit(int[] gas, int[] cost) {
             currentSurplus = 0;
         }
     }
-    return totalSurplus >= 0 x start : -1; // Why: if total >= 0, solution exists at start
+    return totalSurplus >= 0 ? start : -1; // Why: if total >= 0, solution exists at start
 }`,
       cppTemplate: `// Gas Station — Find Starting Point
 int canCompleteCircuit(vector<int>& gas, vector<int>& cost) {
@@ -297,7 +297,7 @@ int canCompleteCircuit(vector<int>& gas, vector<int>& cost) {
     }
     
     // As long as total gas >= total cost, a solution is guaranteed to exist
-    return (totalSurplus >= 0) x startIdx : -1; 
+    return (totalSurplus >= 0) ? startIdx : -1; 
 }`,
       timeComplexity: "O(n)",
       spaceComplexity: "O(1)",
