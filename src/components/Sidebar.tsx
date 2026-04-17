@@ -7,6 +7,7 @@ import { useState } from "react";
 import {
   Flame,
   FolderOpen,
+  Map,
   LayoutDashboard,
   LogIn,
   LogOut,
@@ -19,6 +20,7 @@ import { useProgress } from "@/hooks/useProgress";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/learning-path", label: "Learning Path", icon: Map },
   { href: "/topics", label: "Topics", icon: FolderOpen },
   { href: "/profile", label: "Profile", icon: User },
 ];

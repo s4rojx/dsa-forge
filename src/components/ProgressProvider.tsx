@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
 type ProgressStore = Record<string, boolean>;
@@ -109,6 +110,8 @@ async function fetchJson<T>(url: string) {
 }
 
 export default function ProgressProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const { data: session, status } = useSession();
   const [progress, setProgress] = useState<ProgressStore>({});
   const [streakData, setStreakData] = useState<StreakData>(emptyStreakData);
@@ -116,23 +119,19 @@ export default function ProgressProvider({ children }: { children: React.ReactNo
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
+  const redirectToLogin = useCallback(() => {
+    const callbackUrl =
+      pathname && pathname.startsWith("/") ? pathname : "/dashboard";
+    router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+  }, [pathname, router]);
+
   const refreshProgressState = useCallback(async () => {
     if (status === "loading") {
       return;
     }
 
     if (!session?.user?.id) {
-      let localProgress = {};
-      try {
-        const stored = localStorage.getItem("dsa_progress");
-        if (stored) {
-          localProgress = JSON.parse(stored);
-        }
-      } catch (e) {
-        console.error("Failed to read local progress", e);
-      }
-      
-      setProgress(localProgress);
+      setProgress({});
       setStreakData(emptyStreakData);
       setUserStats(emptyUserStats);
       setIsLoaded(true);
@@ -170,6 +169,11 @@ export default function ProgressProvider({ children }: { children: React.ReactNo
 
   const toggleProblem = useCallback(
     async (problemId: string) => {
+      if (!session?.user?.id) {
+        redirectToLogin();
+        return false;
+      }
+
       const wasCompleted = Boolean(progress[problemId]);
 
       // Optimistic update for UI feel
@@ -180,22 +184,8 @@ export default function ProgressProvider({ children }: { children: React.ReactNo
         } else {
           next[problemId] = true;
         }
-
-        // If unauthenticated, save to local storage immediately
-        if (!session?.user?.id) {
-          try {
-            localStorage.setItem("dsa_progress", JSON.stringify(next));
-          } catch (e) {
-            console.error("Local storage error:", e);
-          }
-        }
         return next;
       });
-
-      // If not authenticated, we only do local state
-      if (!session?.user?.id) {
-        return true;
-      }
 
       try {
         const response = await fetch("/api/progress", {
@@ -210,6 +200,11 @@ export default function ProgressProvider({ children }: { children: React.ReactNo
         });
 
         if (!response.ok) {
+          if (response.status === 401) {
+            redirectToLogin();
+            return false;
+          }
+
           throw new Error("Problem toggle failed");
         }
 
@@ -230,11 +225,12 @@ export default function ProgressProvider({ children }: { children: React.ReactNo
         return false;
       }
     },
-    [progress, refreshProgressState, session?.user?.id]
+    [progress, redirectToLogin, refreshProgressState, session?.user?.id]
   );
 
   const resetProgress = useCallback(async () => {
     if (!session?.user?.id) {
+      redirectToLogin();
       return false;
     }
 
@@ -247,6 +243,11 @@ export default function ProgressProvider({ children }: { children: React.ReactNo
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          redirectToLogin();
+          return false;
+        }
+
         throw new Error("Progress reset failed");
       }
 
@@ -257,7 +258,7 @@ export default function ProgressProvider({ children }: { children: React.ReactNo
       setProgress(previous);
       return false;
     }
-  }, [progress, refreshProgressState, session?.user?.id]);
+  }, [progress, redirectToLogin, refreshProgressState, session?.user?.id]);
 
   const isCompleted = useCallback(
     (problemId: string) => Boolean(progress[problemId]),

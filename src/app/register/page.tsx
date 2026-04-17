@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { ArrowRight, Loader2, Lock, Mail, User, Zap } from "lucide-react";
+import { getSafeCallbackUrl } from "@/lib/safe-callback-url";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -18,9 +19,9 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const nextCallbackUrl =
-        new URLSearchParams(window.location.search).get("callbackUrl") || "/dashboard";
-      setCallbackUrl(nextCallbackUrl);
+      const rawCallbackUrl =
+        new URLSearchParams(window.location.search).get("callbackUrl");
+      setCallbackUrl(getSafeCallbackUrl(rawCallbackUrl));
     }
   }, []);
 
@@ -66,7 +67,7 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push(callbackUrl);
+      router.push(getSafeCallbackUrl(callbackUrl));
       router.refresh();
     } catch {
       setError("Unable to create your account right now.");

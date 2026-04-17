@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { ArrowRight, Loader2, Lock, Mail, Zap } from "lucide-react";
+import { getSafeCallbackUrl } from "@/lib/safe-callback-url";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,9 +17,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const nextCallbackUrl =
-        new URLSearchParams(window.location.search).get("callbackUrl") || "/dashboard";
-      setCallbackUrl(nextCallbackUrl);
+      const rawCallbackUrl =
+        new URLSearchParams(window.location.search).get("callbackUrl");
+      setCallbackUrl(getSafeCallbackUrl(rawCallbackUrl));
     }
   }, []);
 
@@ -39,7 +40,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.push(callbackUrl);
+      router.push(getSafeCallbackUrl(callbackUrl));
       router.refresh();
     } catch {
       setError("Unable to sign in right now.");

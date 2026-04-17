@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getProblemMetadata } from "@/lib/problem-index";
 import { addUtcDays, startOfUtcDay } from "@/lib/streak";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +54,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const normalizedProblemId = problemId.trim();
+    if (!normalizedProblemId || !getProblemMetadata(normalizedProblemId)) {
+      return NextResponse.json(
+        { error: "Unknown problem id" },
+        { status: 400 }
+      );
+    }
+
     const userId = session.user.id;
 
     await prisma.$transaction(async (tx) => {
@@ -60,7 +69,7 @@ export async function POST(req: NextRequest) {
         where: {
           userId_problemId: {
             userId,
-            problemId,
+            problemId: normalizedProblemId,
           },
         },
       });
@@ -76,7 +85,7 @@ export async function POST(req: NextRequest) {
         await tx.solvedProblem.create({
           data: {
             userId,
-            problemId,
+            problemId: normalizedProblemId,
             solvedAt,
           },
         });
@@ -146,7 +155,7 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    return NextResponse.json({ problemId, completed });
+    return NextResponse.json({ problemId: normalizedProblemId, completed });
   } catch (error) {
     console.error("Progress save error:", error);
     return NextResponse.json(

@@ -2,7 +2,14 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const protectedPrefixes = ["/dashboard", "/topics", "/topic", "/pattern", "/profile"];
+const protectedPrefixes = [
+  "/dashboard",
+  "/learning-path",
+  "/topics",
+  "/topic",
+  "/pattern",
+  "/profile",
+];
 const authPages = new Set(["/login", "/register"]);
 
 function isProtectedPath(pathname: string) {
@@ -32,5 +39,14 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/topics/:path*", "/topic/:path*", "/pattern/:path*", "/profile/:path*", "/login", "/register"],
+  matcher: [
+    "/dashboard/:path*",
+    "/learning-path/:path*",
+    "/topics/:path*",
+    "/topic/:path*",
+    "/pattern/:path*",
+    "/profile/:path*",
+    "/login",
+    "/register",
+  ],
 };
