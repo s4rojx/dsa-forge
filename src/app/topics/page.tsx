@@ -1,11 +1,11 @@
 "use client";
 
 import AppShell from "@/components/AppShell";
-import { allTopics } from "@/data";
-import { useProgress } from "@/hooks/useProgress";
 import ProgressBar from "@/components/ProgressBar";
-import Link from "next/link";
+import { allTopics, marketingStats } from "@/data";
+import { useProgress } from "@/hooks/useProgress";
 import { ArrowRight, BookOpen } from "lucide-react";
+import Link from "next/link";
 
 export default function TopicsPage() {
   const { getTopicProgress } = useProgress();
@@ -15,7 +15,7 @@ export default function TopicsPage() {
       <div className="mb-8">
         <h1 className="font-rubik text-2xl font-bold text-text-1">All Topics</h1>
         <p className="mt-1 text-sm text-text-2">
-          15 topics, 50+ patterns — choose your focus area
+          {marketingStats.topics} topics, {marketingStats.patterns} patterns - choose your focus area
         </p>
       </div>
 
@@ -48,13 +48,13 @@ export default function TopicsPage() {
               <h3 className="mt-4 font-jakarta text-lg font-bold text-text-1">
                 {topic.title}
               </h3>
-              <p className="mt-1 text-xs text-text-2 leading-relaxed line-clamp-2">
+              <p className="mt-1 text-xs leading-relaxed text-text-2 line-clamp-2">
                 {topic.description}
               </p>
 
               <div className="mt-3 flex items-center gap-2 text-[10px] font-mono text-text-3">
                 <span>{topic.patterns.length} patterns</span>
-                <span className="text-border">•</span>
+                <span className="text-border">-</span>
                 <span className="text-success">{diffCounts.easy}E</span>
                 <span className="text-primary">{diffCounts.medium}M</span>
                 <span className="text-danger">{diffCounts.hard}H</span>

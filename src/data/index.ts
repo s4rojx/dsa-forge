@@ -36,8 +36,18 @@ export const allTopics: Topic[] = [
 export const getTopicBySlug = (slug: string): Topic | undefined =>
   allTopics.find((t) => t.slug === slug);
 
-export const getTotalProblems = (): number =>
-  allTopics.reduce((sum, t) => sum + t.totalProblems, 0);
+export const totalTopics = allTopics.length;
 
-export const getTotalPatterns = (): number =>
-  allTopics.reduce((sum, t) => sum + t.patterns.length, 0);
+export const totalProblems = allTopics.reduce((sum, t) => sum + t.totalProblems, 0);
+
+export const totalPatterns = allTopics.reduce((sum, t) => sum + t.patterns.length, 0);
+
+export const marketingStats = {
+  problems: "500+",
+  patterns: "50+",
+  topics: "15",
+} as const;
+
+export const getTotalProblems = (): number => totalProblems;
+
+export const getTotalPatterns = (): number => totalPatterns;

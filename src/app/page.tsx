@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import SearchModal from "@/components/SearchModal";
 import { PointerHighlight } from "@/components/ui/pointer-highlight";
-import { getTotalPatterns, getTotalProblems } from "@/data";
+import { marketingStats } from "@/data";
 import { useKeyboard } from "@/hooks/useKeyboard";
 import { useProgress } from "@/hooks/useProgress";
 import { useSearch } from "@/hooks/useSearch";
@@ -17,8 +17,6 @@ export default function HomePage() {
   useKeyboard(openSearch);
 
   const totalSolved = getTotalCompleted();
-  const totalProblems = getTotalProblems();
-  const totalPatterns = getTotalPatterns();
 
   return (
     <div className="min-h-screen bg-bg-root text-text-1">
@@ -47,7 +45,7 @@ export default function HomePage() {
             </h1>
 
             <p className="mt-6 max-w-2xl font-jakarta text-lg text-text-2 sm:text-xl">
-              500+ problems. 50+ patterns. 15 topics.
+              {marketingStats.problems} problems. {marketingStats.patterns} patterns. {marketingStats.topics} topics.
             </p>
 
             <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
@@ -71,9 +69,9 @@ export default function HomePage() {
 
             <div className="mt-16 flex items-center gap-10 sm:gap-14">
               {[
-                { value: `${totalProblems}+`, label: "Problems" },
-                { value: `${totalPatterns}+`, label: "Patterns" },
-                { value: "15", label: "Topics" },
+                { value: marketingStats.problems, label: "Problems" },
+                { value: marketingStats.patterns, label: "Patterns" },
+                { value: marketingStats.topics, label: "Topics" },
               ].map((stat) => (
                 <div key={stat.label} className="text-center">
                   <p className="font-rubik text-3xl font-bold text-primary sm:text-4xl">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Plus_Jakarta_Sans, Rubik } from "next/font/google";
 import AuthProvider from "@/components/AuthProvider";
+import { marketingStats } from "@/data";
 import "./globals.css";
 
 const rubik = Rubik({
@@ -27,7 +28,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "DSA Forge",
   description:
-    "500+ problems. 50+ patterns. 15 topics. One framework - Java. Master data structures and algorithms through pattern-based learning.",
+    `${marketingStats.problems} problems. ${marketingStats.patterns} patterns. ${marketingStats.topics} topics. One framework - Java. Master data structures and algorithms through pattern-based learning.`,
   keywords: [
     "DSA",
     "Data Structures",
@@ -43,7 +44,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "DSA Forge",
     description:
-      "500+ problems. 50+ patterns. 15 topics. Master DSA through pattern-based learning.",
+      `${marketingStats.problems} problems. ${marketingStats.patterns} patterns. ${marketingStats.topics} topics. Master DSA through pattern-based learning.`,
     type: "website",
   },
 };
