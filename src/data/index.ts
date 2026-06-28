@@ -14,40 +14,31 @@ import { dynamicProgramming } from "./dynamic-programming";
 import { sortingSearching } from "./sorting-searching";
 import { math } from "./math";
 import { Topic } from "@/types";
-
 export const allTopics: Topic[] = [
-  arraysStrings,
-  binarySearch,
-  sortingSearching,
-  slidingWindow,
-  greedy,
-  stacksQueues,
-  linkedLists,
-  treesBst,
-  heaps,
-  backtracking,
-  dynamicProgramming,
-  tries,
-  bitManipulation,
-  graphs,
-  math,
+    arraysStrings,
+    binarySearch,
+    sortingSearching,
+    slidingWindow,
+    greedy,
+    stacksQueues,
+    linkedLists,
+    treesBst,
+    heaps,
+    backtracking,
+    dynamicProgramming,
+    tries,
+    bitManipulation,
+    graphs,
+    math,
 ];
-
-export const getTopicBySlug = (slug: string): Topic | undefined =>
-  allTopics.find((t) => t.slug === slug);
-
+export const getTopicBySlug = (slug: string): Topic | undefined => allTopics.find((t) => t.slug === slug);
 export const totalTopics = allTopics.length;
-
 export const totalProblems = allTopics.reduce((sum, t) => sum + t.totalProblems, 0);
-
 export const totalPatterns = allTopics.reduce((sum, t) => sum + t.patterns.length, 0);
-
 export const marketingStats = {
-  problems: "500+",
-  patterns: "50+",
-  topics: "15",
+    problems: "500+",
+    patterns: "50+",
+    topics: "15",
 } as const;
-
 export const getTotalProblems = (): number => totalProblems;
-
 export const getTotalPatterns = (): number => totalPatterns;

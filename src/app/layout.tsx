@@ -3,66 +3,51 @@ import { JetBrains_Mono, Plus_Jakarta_Sans, Rubik } from "next/font/google";
 import AuthProvider from "@/components/AuthProvider";
 import { marketingStats } from "@/data";
 import "./globals.css";
-
 const rubik = Rubik({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-rubik",
-  display: "swap",
+    subsets: ["latin"],
+    weight: ["400", "500", "600", "700", "800"],
+    variable: "--font-rubik",
+    display: "swap",
 });
-
 const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-jakarta",
-  display: "swap",
+    subsets: ["latin"],
+    weight: ["400", "500", "600", "700", "800"],
+    variable: "--font-jakarta",
+    display: "swap",
 });
-
 const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-jetbrains",
-  display: "swap",
+    subsets: ["latin"],
+    weight: ["400", "500", "600", "700"],
+    variable: "--font-jetbrains",
+    display: "swap",
 });
-
 export const metadata: Metadata = {
-  title: "DSA Forge",
-  description:
-    `${marketingStats.problems} problems. ${marketingStats.patterns} patterns. ${marketingStats.topics} topics. One framework - Java. Master data structures and algorithms through pattern-based learning.`,
-  keywords: [
-    "DSA",
-    "Data Structures",
-    "Algorithms",
-    "Interview Preparation",
-    "LeetCode",
-    "Coding Interview",
-    "Java",
-    "Dynamic Programming",
-    "Graphs",
-    "Trees",
-  ],
-  openGraph: {
     title: "DSA Forge",
-    description:
-      `${marketingStats.problems} problems. ${marketingStats.patterns} patterns. ${marketingStats.topics} topics. Master DSA through pattern-based learning.`,
-    type: "website",
-  },
+    description: `${marketingStats.problems} problems. ${marketingStats.patterns} patterns. ${marketingStats.topics} topics. One framework - Java. Master data structures and algorithms through pattern-based learning.`,
+    keywords: [
+        "DSA",
+        "Data Structures",
+        "Algorithms",
+        "Interview Preparation",
+        "LeetCode",
+        "Coding Interview",
+        "Java",
+        "Dynamic Programming",
+        "Graphs",
+        "Trees",
+    ],
+    openGraph: {
+        title: "DSA Forge",
+        description: `${marketingStats.problems} problems. ${marketingStats.patterns} patterns. ${marketingStats.topics} topics. Master DSA through pattern-based learning.`,
+        type: "website",
+    },
 };
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
+export default function RootLayout({ children, }: Readonly<{
+    children: React.ReactNode;
 }>) {
-  return (
-    <html
-      lang="en"
-      className={`${rubik.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`}
-      suppressHydrationWarning
-    >
+    return (<html lang="en" className={`${rubik.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
       <body className="bg-bg-root font-jakarta text-text-1 antialiased" suppressHydrationWarning>
         <AuthProvider>{children}</AuthProvider>
       </body>
-    </html>
-  );
+    </html>);
 }
