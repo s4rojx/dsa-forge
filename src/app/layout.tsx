@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Plus_Jakarta_Sans, Rubik } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import AuthProvider from "@/components/AuthProvider";
 import { marketingStats } from "@/data";
 import "./globals.css";
@@ -48,6 +49,7 @@ export default function RootLayout({ children, }: Readonly<{
     return (<html lang="en" className={`${rubik.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
       <body className="bg-bg-root font-jakarta text-text-1 antialiased" suppressHydrationWarning>
         <AuthProvider>{children}</AuthProvider>
+        <Analytics />
       </body>
     </html>);
 }
